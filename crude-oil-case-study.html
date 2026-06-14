@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crude Oil Supply Chain &amp; Logistics Analytics — Prachi Dabli</title>
+<meta name="description" content="A Business Intelligence case study analysing an oil refinery's inbound and outbound fuel supply chain using SQL, Python and Tableau.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Hanken+Grotesk:ital,wght@0,300..800;1,400..600&display=swap" rel="stylesheet">
+<!-- Tableau Embedding API -->
+<script type="module" src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+<style>
+  :root{
+    --navy-900:#0B1626; --navy-800:#0F1E33; --navy-700:#16294A; --navy-600:#23406B; --navy-500:#33547F;
+    --cream:#FAF6EE; --cream-2:#F2ECDE; --cream-3:#E8E0CC;
+    --amber:#E0A030; --amber-bright:#F4B63F; --amber-dark:#BD831C;
+    --ink:#15203A; --ink-soft:#43506B; --ink-mute:#717C95;
+    --line:rgba(21,32,58,.12);
+    --shadow:0 1px 2px rgba(11,22,38,.04),0 8px 30px rgba(11,22,38,.08);
+    --maxw:1080px; --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Hanken Grotesk',sans-serif;background:var(--cream);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;line-height:1.1;letter-spacing:-.02em}
+  ::selection{background:var(--amber);color:var(--navy-900)}
+  a{color:var(--navy-700);text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* Top bar */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(250,246,238,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .back{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;color:var(--ink-soft)}
+  .back:hover{color:var(--navy-700)}
+  .brand{font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;letter-spacing:-.02em}
+
+  /* Hero */
+  .hero{background:linear-gradient(135deg,var(--navy-800),var(--navy-700));color:var(--cream);padding:64px 0 56px}
+  .eyebrow{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-bright);margin-bottom:18px}
+  .hero h1{font-size:clamp(30px,5vw,46px);color:#fff;max-width:18ch}
+  .hero p.lede{margin-top:18px;font-size:18px;color:rgba(255,255,255,.82);max-width:62ch}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+  .chip{font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+  .meta{margin-top:22px;font-size:14px;color:rgba(255,255,255,.6)}
+
+  /* Sections */
+  section{padding:54px 0}
+  .sec-label{font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:12px}
+  h2{font-size:clamp(24px,3.4vw,32px);margin-bottom:8px}
+  h3{font-size:20px;margin:30px 0 8px;color:var(--navy-700)}
+  p{margin:14px 0;color:var(--ink-soft);font-size:16.5px}
+  p strong,li strong{color:var(--ink)}
+  ul{margin:14px 0 14px 2px;list-style:none}
+  ul li{position:relative;padding-left:24px;margin:9px 0;color:var(--ink-soft)}
+  ul li::before{content:"";position:absolute;left:2px;top:11px;width:7px;height:7px;border-radius:2px;background:var(--amber)}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:30px 32px}
+  .demo-note{font-size:13.5px;color:var(--ink-mute);font-style:italic;margin-top:6px}
+
+  /* Dashboard embed */
+  .dash-section{background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .dash-frame{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px;overflow:hidden}
+  tableau-viz{width:100%}
+  .dash-actions{margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:12px 22px;border-radius:999px;border:1px solid transparent;transition:.2s}
+  .btn-primary{background:var(--navy-700);color:var(--cream)}
+  .btn-primary:hover{background:var(--navy-900);transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--navy-700);border-color:var(--line)}
+  .btn-ghost:hover{background:#fff}
+
+  /* Data table */
+  table.data{width:100%;border-collapse:collapse;margin:18px 0;font-size:15px;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  table.data th,table.data td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  table.data th{background:var(--navy-700);color:var(--cream);font-weight:600;font-family:'Bricolage Grotesque'}
+  table.data tr:last-child td{border-bottom:none}
+  table.data td:last-child,table.data th:last-child{text-align:right}
+
+  /* Business question blocks */
+  .bq{border-left:3px solid var(--amber);padding:4px 0 4px 22px;margin:26px 0}
+  .bq h4{font-size:18px;color:var(--navy-700);margin-bottom:4px}
+
+  /* Code */
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;background:var(--cream-3);padding:2px 7px;border-radius:6px;color:var(--navy-800)}
+  pre{background:var(--navy-900);color:#E8EEF7;padding:18px 20px;border-radius:10px;overflow-x:auto;margin:16px 0;font-size:14px}
+  pre code{background:none;color:inherit;padding:0}
+
+  /* Competency grid */
+  .comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:18px}
+  .comp{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow)}
+  .comp h4{font-size:15.5px;color:var(--navy-700);margin-bottom:6px}
+  .comp p{font-size:14.5px;margin:0}
+
+  /* Footer */
+  footer{background:var(--navy-900);color:rgba(255,255,255,.7);padding:40px 0;text-align:center;font-size:14.5px}
+  footer a{color:var(--amber-bright);font-weight:600}
+
+  @media (max-width:640px){
+    .hero{padding:48px 0 40px}
+    section{padding:40px 0}
+    .card{padding:22px 20px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a class="back" href="index.html">&larr; Back to portfolio</a>
+    <span class="brand">Prachi Dabli</span>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Flagship Project · Business Intelligence</span>
+    <h1>Crude Oil Supply Chain &amp; Logistics Analytics</h1>
+    <p class="lede">An end-to-end analytics project tracing fuel through a refinery's supply chain, from inbound crude to outbound product, turning raw logistics data into operational decisions.</p>
+    <div class="chips">
+      <span class="chip">SQL (MySQL)</span>
+      <span class="chip">Python</span>
+      <span class="chip">Tableau</span>
+      <span class="chip">Excel</span>
+      <span class="chip">Star Schema</span>
+    </div>
+    <p class="meta">24 months of synthetic data · 9-table star schema · 5 business questions answered</p>
+  </div>
+</header>
+
+<!-- LIVE DASHBOARD -->
+<section class="dash-section">
+  <div class="wrap">
+    <div class="sec-label">Interactive Dashboard</div>
+    <h2 style="margin-bottom:18px">Explore the live dashboard</h2>
+    <div class="dash-frame">
+      <tableau-viz id="tableauViz"
+        src="https://public.tableau.com/views/CrudeOilSupplyChainLogisticsAnalytics/Dashboard2"
+        toolbar="bottom" hide-tabs>
+      </tableau-viz>
+    </div>
+    <div class="dash-actions">
+      <a class="btn btn-primary" href="https://public.tableau.com/app/profile/prachi.dabli2929/viz/CrudeOilSupplyChainLogisticsAnalytics/Dashboard2" target="_blank" rel="noopener">Open in Tableau Public &nearr;</a>
+      <span style="font-size:14px;color:var(--ink-mute)">Hover, filter, and explore. Built and published on Tableau Public.</span>
+    </div>
+  </div>
+</section>
+
+<!-- OBJECTIVE -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Objective</div>
+    <h2>The problem</h2>
+    <p>A refinery moves two very different products through its supply chain: <strong>High Speed Diesel (HSD)</strong>, a high-volume product sold to a broad base of fuel stations, transport fleets, and industrial clients; and <strong>Aviation Turbine Fuel (ATF)</strong>, a lower-volume, higher-sensitivity product sold to a small, concentrated set of airports and airlines. Behind both sits a flow of <strong>inbound crude</strong> arriving from international suppliers.</p>
+    <p>Managing this chain requires clear visibility over five questions:</p>
+    <ul>
+      <li><strong>Volume and demand</strong> — how much crude is coming in and how much product is going out, to whom, and how is it trending?</li>
+      <li><strong>Supplier and transporter reliability</strong> — who delivers on time and in full, and who causes problems?</li>
+      <li><strong>Logistics and delivery efficiency</strong> — where do delays build up, and which routes underperform?</li>
+      <li><strong>Cost</strong> — what does it cost to move each product, and where is money being lost?</li>
+      <li><strong>Inventory health</strong> — are stock levels healthy, and where is there stockout risk?</li>
+    </ul>
+    <p>The objective was to build an end-to-end analytics solution that answers these questions and turns raw logistics data into decisions a refinery operations team can act on.</p>
+  </div>
+</section>
+
+<!-- DATA -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">The Data</div>
+    <h2>A realistic synthetic dataset</h2>
+    <p>The project uses a <strong>synthetic dataset</strong> built to mirror the structure and behaviour of real refinery logistics operations. It was generated programmatically in Python, with realistic patterns deliberately built in:</p>
+    <ul>
+      <li>Crude measured in <strong>barrels</strong>, refined products in <strong>litres</strong>, reflecting real industry practice.</li>
+      <li><strong>Seasonality</strong> in demand (ATF peaks in summer and December; HSD lifts slightly in winter).</li>
+      <li><strong>Reliability profiles</strong> that differ by supplier and transporter, so performance analysis surfaces real differences.</li>
+      <li><strong>Cost and price drift</strong> month to month, and occasional short deliveries, providing genuine data-quality issues to clean.</li>
+    </ul>
+    <p>The data is organised as a <strong>star schema</strong> of nine tables — six dimensions (product, supplier, customer, transporter, location, date) and three facts (inbound crude shipments, outbound product deliveries, monthly inventory snapshots).</p>
+    <table class="data">
+      <thead><tr><th>Table</th><th>Rows</th></tr></thead>
+      <tbody>
+        <tr><td>fact_outbound (product deliveries)</td><td>1,230</td></tr>
+        <tr><td>fact_inbound (crude shipments)</td><td>273</td></tr>
+        <tr><td>fact_inventory (monthly snapshots)</td><td>216</td></tr>
+        <tr><td>6 dimension tables</td><td>reference data</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Methodology</div>
+    <h2>From raw data to insight</h2>
+
+    <h3>Step 1 — Database &amp; schema design (SQL)</h3>
+    <p>The foundation is a relational database, <code>oil_supply_chain</code>, built in MySQL as a star schema. Six dimension tables hold descriptive reference data; three fact tables hold the measurable events at the centre of the analysis. Each table uses appropriate data types, with <strong>primary keys</strong> identifying every row and <strong>foreign keys</strong> linking facts back to dimensions to enforce data integrity. The schema is written to be re-runnable, rebuilding cleanly at any point.</p>
+    <p class="demo-note">Demonstrates: relational data modelling, star-schema design, and data integrity.</p>
+
+    <h3>Step 2 — Loading the data &amp; resolving a data-type issue</h3>
+    <p>The nine CSV files were loaded via MySQL Workbench's Import Wizard, dimensions first then facts so foreign keys were respected. During the load, <code>dim_date</code> returned <strong>0 records imported</strong> while every other table loaded fine. The cause: the <code>is_weekend</code> field held the text values <code>True</code>/<code>False</code>, but the column was defined as a numeric flag, so MySQL silently rejected every row. The fix aligned the column type to the data:</p>
+    <pre><code>ALTER TABLE dim_date MODIFY is_weekend VARCHAR(5);</code></pre>
+    <p>Re-running then loaded all 731 rows. A small but realistic example of diagnosing the root cause of a failed load rather than guessing.</p>
+    <p class="demo-note">Demonstrates: data loading, troubleshooting a failed import, and resolving a data-type mismatch.</p>
+
+    <h3>Step 3 — Analysis in SQL</h3>
+    <p>With the data loaded, analytical queries answered the five business questions, using joins across fact and dimension tables, aggregation, ordering, and window functions where share-of-total was needed.</p>
+
+    <div class="bq">
+      <h4>1 · Volume &amp; demand</h4>
+      <p>Established the headline flows (≈32.8M barrels of crude in, ≈255M litres of product out over 24 months) and broke demand down by product, customer segment, and month. HSD accounted for ~81% of outbound volume, ATF the remaining ~19%. The key finding came from the monthly trend: <strong>ATF showed clear, repeating seasonality, peaking in June, July, and December across both years</strong> — a direct input into inventory planning and supplier scheduling.</p>
+    </div>
+
+    <div class="bq">
+      <h4>2 · Supplier &amp; transporter reliability</h4>
+      <p>Reliability was measured using <strong>OTIF (On-Time-In-Full)</strong>, the standard supply-chain metric, supported by average delay days, with suppliers banded into tiers via a CASE statement. North Sea Resources was the most reliable supplier at 86% OTIF; the weakest spot-market supplier fell to ~75%. Pipeline transport led at ~89% OTIF while marine vessel shipping was both the least reliable (~75%) and slowest to recover — consistent with marine logistics' real exposure to weather and port delays.</p>
+    </div>
+
+    <div class="bq">
+      <h4>3 · Logistics &amp; delivery efficiency</h4>
+      <p>Lead times were calculated directly from the date fields with <code>DATEDIFF</code> rather than a pre-built column, then delay rates analysed by product, route, and mode. Inbound crude ran ~14 days average lead time with ~11% of shipments delayed. The most actionable finding: one outbound delivery lane carried a delay rate close to double the others — the clear first target for improvement.</p>
+    </div>
+
+    <div class="bq">
+      <h4>4 · Cost</h4>
+      <p>Connected logistics to money on both sides: crude spend (volume × unit cost) inbound, revenue (volume × unit price) outbound, with freight tracked separately. Two commercial findings stood out: spend differences between suppliers were driven by <strong>volume, not unit price</strong> (per-barrel costs sat in a narrow band), reframing where procurement leverage lies; and freight ran at a very low percentage of revenue, indicating an efficient distribution operation.</p>
+    </div>
+
+    <div class="bq">
+      <h4>5 · Inventory health</h4>
+      <p>Measured through days of cover and a stockout-risk flag, analysed by location and product. Around a fifth of monthly snapshots fell into stockout-risk territory, concentrated at one depot. <strong>ATF ran short more often than HSD despite being the smaller-volume product</strong> — connecting back to the Question 1 seasonality: ATF demand spikes in summer and December, exactly when its stock comes under pressure. The recommendation: flex ATF stock policy with the season rather than holding it flat.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONCLUSION -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">Conclusion</div>
+    <h2>One connected story</h2>
+    <p>The project delivers an end-to-end view of the refinery supply chain, from crude arriving at the gate to product reaching the customer, answering all five questions with evidence:</p>
+    <ul>
+      <li><strong>Volume &amp; demand</strong> is dominated by HSD, with ATF showing clear seasonal peaks.</li>
+      <li><strong>Reliability</strong> varies meaningfully by supplier and transporter, with spot-market supply and marine transport carrying the most risk.</li>
+      <li><strong>Delivery efficiency</strong> is strong overall, with one route standing out as a clear improvement target.</li>
+      <li><strong>Cost</strong> is driven by volume rather than unit price, and distribution runs efficiently on freight.</li>
+      <li><strong>Inventory</strong> risk concentrates in aviation fuel during peak-demand periods, pointing to a seasonal stocking policy.</li>
+    </ul>
+    <p>Together these turn a raw logistics dataset into a set of decisions an operations team could act on tomorrow.</p>
+  </div>
+</section>
+
+<!-- COMPETENCY -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Competency Shown</div>
+    <h2>Skills demonstrated</h2>
+    <div class="comp-grid">
+      <div class="comp"><h4>SQL</h4><p>Star-schema design, joins, aggregation, window functions, CASE logic, UNION, DATEDIFF, HAVING, subqueries.</p></div>
+      <div class="comp"><h4>Data modelling</h4><p>Dimensional model with primary and foreign keys enforcing integrity.</p></div>
+      <div class="comp"><h4>Data quality</h4><p>Diagnosing and resolving a failed load; handling unit differences (barrels vs litres).</p></div>
+      <div class="comp"><h4>Business intelligence</h4><p>KPI design (OTIF, days of cover, cost per litre) and dashboard reporting in Tableau.</p></div>
+      <div class="comp"><h4>Commercial insight</h4><p>Reading cost, revenue, and risk together, and connecting findings into recommendations.</p></div>
+      <div class="comp"><h4>Communication</h4><p>Documenting the work clearly from objective through to conclusion.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Synthetic dataset, created to model realistic refinery logistics for portfolio demonstration.</p>
+    <p style="margin-top:10px"><a href="index.html">&larr; Back to portfolio</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
