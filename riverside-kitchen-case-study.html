@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Riverside Kitchen — Restaurant Analytics | Prachi Dabli</title>
+<meta name="description" content="A Python-led restaurant analytics case study covering demand, menu engineering, customer behaviour, suppliers and waste, built with Python, SQL and Tableau.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Hanken+Grotesk:ital,wght@0,300..800;1,400..600&display=swap" rel="stylesheet">
+<!-- Tableau Embedding API -->
+<script type="module" src="https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+<style>
+  :root{
+    --navy-900:#0B1626; --navy-800:#0F1E33; --navy-700:#16294A; --navy-600:#23406B; --navy-500:#33547F;
+    --cream:#FAF6EE; --cream-2:#F2ECDE; --cream-3:#E8E0CC;
+    --amber:#E0A030; --amber-bright:#F4B63F; --amber-dark:#BD831C;
+    --ink:#15203A; --ink-soft:#43506B; --ink-mute:#717C95;
+    --line:rgba(21,32,58,.12);
+    --shadow:0 1px 2px rgba(11,22,38,.04),0 8px 30px rgba(11,22,38,.08);
+    --maxw:1080px; --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Hanken Grotesk',sans-serif;background:var(--cream);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;line-height:1.1;letter-spacing:-.02em}
+  ::selection{background:var(--amber);color:var(--navy-900)}
+  a{color:var(--navy-700);text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(250,246,238,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .back{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;color:var(--ink-soft)}
+  .back:hover{color:var(--navy-700)}
+  .brand{font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;letter-spacing:-.02em}
+
+  .hero{background:linear-gradient(135deg,var(--navy-800),var(--navy-700));color:var(--cream);padding:64px 0 56px}
+  .eyebrow{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-bright);margin-bottom:18px}
+  .hero h1{font-size:clamp(30px,5vw,46px);color:#fff;max-width:20ch}
+  .hero p.lede{margin-top:18px;font-size:18px;color:rgba(255,255,255,.82);max-width:62ch}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+  .chip{font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+  .meta{margin-top:22px;font-size:14px;color:rgba(255,255,255,.6)}
+
+  section{padding:54px 0}
+  .sec-label{font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:12px}
+  h2{font-size:clamp(24px,3.4vw,32px);margin-bottom:8px}
+  h3{font-size:20px;margin:30px 0 8px;color:var(--navy-700)}
+  p{margin:14px 0;color:var(--ink-soft);font-size:16.5px}
+  p strong,li strong{color:var(--ink)}
+  ul{margin:14px 0 14px 2px;list-style:none}
+  ul li{position:relative;padding-left:24px;margin:9px 0;color:var(--ink-soft)}
+  ul li::before{content:"";position:absolute;left:2px;top:11px;width:7px;height:7px;border-radius:2px;background:var(--amber)}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:30px 32px}
+  .demo-note{font-size:13.5px;color:var(--ink-mute);font-style:italic;margin-top:6px}
+
+  .dash-section{background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .dash-frame{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:10px;overflow:hidden}
+  tableau-viz{width:100%}
+  .dash-actions{margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:12px 22px;border-radius:999px;border:1px solid transparent;transition:.2s}
+  .btn-primary{background:var(--navy-700);color:var(--cream)}
+  .btn-primary:hover{background:var(--navy-900);transform:translateY(-1px)}
+
+  table.data{width:100%;border-collapse:collapse;margin:18px 0;font-size:15px;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  table.data th,table.data td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  table.data th{background:var(--navy-700);color:var(--cream);font-weight:600;font-family:'Bricolage Grotesque'}
+  table.data tr:last-child td{border-bottom:none}
+  table.data td:last-child,table.data th:last-child{text-align:right}
+
+  .bq{border-left:3px solid var(--amber);padding:4px 0 4px 22px;margin:26px 0}
+  .bq h4{font-size:18px;color:var(--navy-700);margin-bottom:4px}
+
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;background:var(--cream-3);padding:2px 7px;border-radius:6px;color:var(--navy-800)}
+
+  /* Recommendations: two columns */
+  .recs{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+  .rec-col{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 28px}
+  .rec-col.then{border-top:4px solid var(--ink-mute)}
+  .rec-col.now{border-top:4px solid var(--amber)}
+  .rec-col h3{margin-top:0;color:var(--navy-700)}
+  @media (max-width:720px){.recs{grid-template-columns:1fr}}
+
+  .comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:18px}
+  .comp{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow)}
+  .comp h4{font-size:15.5px;color:var(--navy-700);margin-bottom:6px}
+  .comp p{font-size:14.5px;margin:0}
+
+  footer{background:var(--navy-900);color:rgba(255,255,255,.7);padding:40px 0;text-align:center;font-size:14.5px}
+  footer a{color:var(--amber-bright);font-weight:600}
+
+  /* Validation / problem-solving */
+  .challenge{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 28px;margin:20px 0}
+  .challenge .ctag{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--amber-dark);background:var(--cream-3);padding:4px 11px;border-radius:6px;margin-bottom:13px}
+  .challenge h3{margin:0 0 14px;color:var(--navy-700);font-size:19px}
+  .cstep{display:grid;grid-template-columns:108px 1fr;gap:14px;margin:11px 0;align-items:start}
+  .cstep .lbl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding-top:3px}
+  .cstep.problem .lbl{color:#B0463C}
+  .cstep.diagnosis .lbl{color:var(--amber-dark)}
+  .cstep.fix .lbl{color:#3A7D4E}
+  .cstep p{margin:0;font-size:15.5px;color:var(--ink-soft)}
+  .cshows{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:14.5px;color:var(--ink-soft)}
+  .cshows strong{color:var(--navy-700)}
+  pre.code{background:var(--navy-900);color:#E6ECF5;border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.8px;line-height:1.55;margin:10px 0}
+  pre.code .c{color:#7E90A8}
+  pre.code .k{color:var(--amber-bright)}
+  @media (max-width:600px){.cstep{grid-template-columns:1fr;gap:3px}.cstep .lbl{padding-top:0}}
+
+  @media (max-width:640px){.hero{padding:48px 0 40px}section{padding:40px 0}.card{padding:22px 20px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a class="back" href="index.html">&larr; Back to portfolio</a>
+    <span class="brand">Prachi Dabli</span>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Flagship Project · Restaurant Analytics</span>
+    <h1>The Riverside Kitchen — Performance Analytics</h1>
+    <p class="lede">A Python-led analysis of an independent Norwich restaurant, connecting the demand side (orders, menu, customers) to the supply side (suppliers, inventory, waste) to find where the business makes and loses money.</p>
+    <div class="chips">
+      <span class="chip">Python (pandas)</span>
+      <span class="chip">SQL (MySQL)</span>
+      <span class="chip">Tableau</span>
+      <span class="chip">Excel</span>
+      <span class="chip">Menu Engineering</span>
+    </div>
+    <p class="meta">18 months of synthetic data · 8-table star schema · 5 business questions · 32,916 orders analysed</p>
+  </div>
+</header>
+
+<!-- LIVE DASHBOARD -->
+<section class="dash-section">
+  <div class="wrap">
+    <div class="sec-label">Interactive Dashboard</div>
+    <h2 style="margin-bottom:18px">Explore the live dashboard</h2>
+    <div class="dash-frame">
+      <tableau-viz id="tableauViz"
+        src="https://public.tableau.com/views/TheRiversideKitchenRestaurantPerformanceAnalytics/Dashboard2"
+        toolbar="bottom" hide-tabs>
+      </tableau-viz>
+    </div>
+    <div class="dash-actions">
+      <a class="btn btn-primary" href="https://public.tableau.com/app/profile/prachi.dabli2929/viz/TheRiversideKitchenRestaurantPerformanceAnalytics/Dashboard2" target="_blank" rel="noopener">Open in Tableau Public &nearr;</a>
+      <span style="font-size:14px;color:var(--ink-mute)">Hover, filter, and explore. Built and published on Tableau Public.</span>
+    </div>
+  </div>
+</section>
+
+<!-- OBJECTIVE -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Objective</div>
+    <h2>The problem</h2>
+    <p>An independent restaurant lives or dies on small margins. Success means understanding both halves of the business at once: what customers buy and when (demand), and what it costs to source and stock the ingredients behind it (supply). The Riverside Kitchen project answers five questions that together cover that full picture:</p>
+    <ul>
+      <li><strong>Demand patterns</strong> — when is the restaurant busy, by day, service, and season?</li>
+      <li><strong>Menu performance</strong> — which dishes are stars, and which quietly lose money?</li>
+      <li><strong>Customer behaviour</strong> — how much do people spend, in what group sizes, and when?</li>
+      <li><strong>Suppliers &amp; cost</strong> — who is reliable, and where does the ingredient budget go?</li>
+      <li><strong>Inventory &amp; waste</strong> — where does stock get wasted, and why?</li>
+    </ul>
+  </div>
+</section>
+
+<!-- DATA -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">The Data</div>
+    <h2>A realistic synthetic dataset</h2>
+    <p>This project uses a <strong>synthetic dataset</strong> generated in Python to realistically mirror the structure and behaviour of a real restaurant's operations. Synthetic data is used because real operational data of this kind is commercially sensitive and not publicly available, allowing the analytical approach to be demonstrated end-to-end without confidentiality concerns.</p>
+    <p>Realistic patterns were deliberately built in: busier weekends and dinner service, a festive December peak and quiet January, menu items spread across the four menu-engineering quadrants, suppliers with differing reliability, and higher waste on perishable ingredients. The data is organised as an <strong>8-table star schema</strong>.</p>
+    <table class="data">
+      <thead><tr><th>Table</th><th>Rows</th></tr></thead>
+      <tbody>
+        <tr><td>fact_order_items</td><td>137,605</td></tr>
+        <tr><td>fact_orders</td><td>32,916</td></tr>
+        <tr><td>fact_purchases</td><td>2,369</td></tr>
+        <tr><td>fact_inventory</td><td>1,185</td></tr>
+        <tr><td>4 dimension tables (date, menu, supplier, ingredient)</td><td>reference data</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Methodology</div>
+    <h2>From raw data to insight</h2>
+    <p>The analysis was led in <strong>Python (pandas)</strong> and independently reproduced in <strong>SQL (MySQL)</strong>, validating every finding across two tools. The core pandas pattern throughout was <em>merge &rarr; group &rarr; summarise</em>: joining fact and dimension tables, grouping, and aggregating.</p>
+
+    <div class="bq">
+      <h4>1 · Demand patterns</h4>
+      <p>Orders peak hard at the weekend (Saturday busiest, Monday quietest) and <strong>dinner drives the business</strong>, around two-thirds of orders and a higher spend per head than lunch. Revenue shows clear seasonality, peaking every December and troughing in January.</p>
+    </div>
+    <div class="bq">
+      <h4>2 · Menu engineering</h4>
+      <p>Every dish was classified by popularity (units sold) and profitability (margin) into <strong>Stars, Plowhorses, Puzzles, and Dogs</strong>. The Riverside Burger, Fish &amp; Chips, House Cocktail, Roast Chicken, and Seafood Linguine are Stars; high-margin Ribeye Steak and Wild Mushroom Risotto are under-selling Puzzles worth promoting; low-performing Dogs are candidates for review.</p>
+    </div>
+    <div class="bq">
+      <h4>3 · Customer behaviour</h4>
+      <p>Parties of two dominate. <strong>Solo diners spend the most per head</strong> (~£17.40 vs a flat ~£15.30 for larger groups), and dinner generates roughly double the revenue of lunch. Average spend per head is £15.63.</p>
+    </div>
+    <div class="bq">
+      <h4>4 · Suppliers &amp; cost</h4>
+      <p>An OTIF (On-Time-In-Full) scorecard ranked suppliers from City Drinks (~95%) down to Coastal Seafood (~71%). The key tension: <strong>Coastal Seafood is both the least reliable supplier and the largest single spend</strong> — the business depends most on the partner it can trust least. Total ingredient spend was £541,908.</p>
+    </div>
+    <div class="bq">
+      <h4>5 · Inventory &amp; waste</h4>
+      <p><strong>Perishable ingredients waste around four times more than non-perishables</strong> (~10% vs ~2.5%), concentrated in fresh seafood and produce — directly linking waste back to the same volatile seafood supply chain seen in Question 4.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VALIDATION / PROBLEM-SOLVING -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">Validation &amp; Problem-Solving</div>
+    <h2>When the numbers looked wrong</h2>
+    <p>An analysis is only as trustworthy as its checks. At several points the output looked plausible at a glance but failed a sense-check — and tracing each one back to its cause was where most of the real work happened. Three examples from this build:</p>
+
+    <!-- Challenge 1 -->
+    <div class="challenge">
+      <span class="ctag">Tableau · date aggregation</span>
+      <h3>A “peak” month that was too big to be real</h3>
+      <div class="cstep problem">
+        <span class="lbl">Problem</span>
+        <p>The revenue trend first showed <strong>June</strong> as the highest month at roughly <strong>£188,000</strong>.</p>
+      </div>
+      <div class="cstep diagnosis">
+        <span class="lbl">Diagnosis</span>
+        <p>No single month in the source data exceeded about £109,000, so £188k was impossible. Tableau was treating the date as a discrete month <em>name</em>, collapsing both Junes (2024 and 2025) into one bar and summing them — which also masked the genuine December festive peak.</p>
+      </div>
+      <div class="cstep fix">
+        <span class="lbl">Fix</span>
+        <p>Switched the date to a <strong>continuous month</strong> so all 18 months plot individually, then cross-checked the monthly totals against the SQL layer, treated as the ground-truth source.</p>
+      </div>
+      <pre class="code"><span class="c">-- SQL ground truth: true monthly revenue, used to validate the dashboard</span>
+<span class="k">SELECT</span> d.year, d.month, <span class="k">ROUND</span>(<span class="k">SUM</span>(o.order_total)) <span class="k">AS</span> revenue
+<span class="k">FROM</span> fact_orders o <span class="k">JOIN</span> dim_date d <span class="k">ON</span> o.date_id = d.date_id
+<span class="k">GROUP BY</span> d.year, d.month <span class="k">ORDER BY</span> revenue <span class="k">DESC</span>;</pre>
+      <p class="cshows"><strong>What it shows:</strong> distrusting a figure that is “too big to be true,” and validating a BI tool against a verified SQL source rather than assuming the dashboard is correct.</p>
+    </div>
+
+    <!-- Challenge 2 -->
+    <div class="challenge">
+      <span class="ctag">SUM vs AVG · additivity</span>
+      <h3>A waste rate of 7,000%</h3>
+      <div class="cstep problem">
+        <span class="lbl">Problem</span>
+        <p>The waste visual’s values ran from 0 to about <strong>7,000</strong> instead of a believable 2–10%.</p>
+      </div>
+      <div class="cstep diagnosis">
+        <span class="lbl">Diagnosis</span>
+        <p>A percentage can’t exceed 100% per snapshot, so 7,000 was a clear logic error. The percentage was being <strong>summed</strong> across hundreds of inventory snapshots — but a rate must be averaged, never added up.</p>
+      </div>
+      <div class="cstep fix">
+        <span class="lbl">Fix</span>
+        <p>Switched the aggregation to an <strong>average</strong>, matching the SQL definition, which already averaged the rate.</p>
+      </div>
+      <pre class="code"><span class="c">-- a rate is averaged, never summed</span>
+<span class="k">ROUND</span>(<span class="k">AVG</span>(inv.waste_pct), 1) <span class="k">AS</span> avg_waste_pct</pre>
+      <p class="cshows"><strong>What it shows:</strong> knowing which measures are additive and which are not, and using a quick plausibility check on the output range to catch an aggregation mistake.</p>
+    </div>
+
+    <!-- Challenge 3 -->
+    <div class="challenge">
+      <span class="ctag">MySQL · data loading</span>
+      <h3>A table that imported zero rows</h3>
+      <div class="cstep problem">
+        <span class="lbl">Problem</span>
+        <p>Importing <code>dim_date</code> into MySQL finished “successfully” but loaded <strong>0 of 547 rows</strong> — every row silently rejected.</p>
+      </div>
+      <div class="cstep diagnosis">
+        <span class="lbl">Diagnosis</span>
+        <p>The <code>is_weekend</code> column holds the text values “Yes”/“No”. The import wizard had inferred a numeric column type, so every text value failed the type check and the whole load failed.</p>
+      </div>
+      <div class="cstep fix">
+        <span class="lbl">Fix</span>
+        <p>Defined the flag columns explicitly as <code>VARCHAR</code> in the schema before loading, so the text imports cleanly and is handled as text in queries.</p>
+      </div>
+      <pre class="code"><span class="k">CREATE TABLE</span> dim_date (
+    ...
+    is_weekend  <span class="k">VARCHAR</span>(5)   <span class="c">-- "Yes"/"No", not a number</span>
+);
+<span class="c">-- dim_ingredient.perishable handled the same way</span></pre>
+      <p class="cshows"><strong>What it shows:</strong> reading import behaviour carefully and designing the schema to match the real shape of the data rather than trusting type inference.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- RECOMMENDATIONS: then vs now -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Recommendations</div>
+    <h2>What the business should have done — and should do now</h2>
+    <p>Analysis only matters if it drives action. Split into the decisions that should have been made at the outset, and the moves the data supports today:</p>
+    <div class="recs">
+      <div class="rec-col then">
+        <h3>At the start</h3>
+        <ul>
+          <li><strong>Dual-source perishables from day one.</strong> Given how exposed fresh seafood is, a backup seafood supplier should have been onboarded at launch to de-risk the single biggest, least reliable spend.</li>
+          <li><strong>Engineer the menu at launch.</strong> Price dishes against their margin tier rather than flat markups, so high-cost items like Fish &amp; Chips weren't left as thin-margin Plowhorses.</li>
+          <li><strong>Build seasonality into stock planning.</strong> The December peak and January trough are predictable; ordering and staffing should have flexed seasonally from the outset.</li>
+          <li><strong>Set perishable par levels early.</strong> Demand-linked ordering rules would have curbed the ~10% perishable waste before it became habit.</li>
+        </ul>
+      </div>
+      <div class="rec-col now">
+        <h3>Right now</h3>
+        <ul>
+          <li><strong>Promote the Puzzles.</strong> Give high-margin, under-selling dishes (Ribeye, Risotto) better menu placement and specials to lift their volume.</li>
+          <li><strong>Nudge Plowhorse prices.</strong> Small increases on popular low-margin items (wine, beer, sides) flow almost entirely to profit.</li>
+          <li><strong>Renegotiate or replace Coastal Seafood.</strong> Address the reliability-vs-spend tension directly through dual-sourcing or terms.</li>
+          <li><strong>Cut perishable waste.</strong> Tighten seafood and produce ordering to demand; even halving the gap meaningfully improves food-cost margin.</li>
+          <li><strong>Lean into dinner and weekends.</strong> The highest-value service and days deserve the marketing and capacity focus.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPETENCY -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">Competency Shown</div>
+    <h2>Skills demonstrated</h2>
+    <div class="comp-grid">
+      <div class="comp"><h4>Python (pandas)</h4><p>Loading, merging, grouping, aggregation, a custom classification function with apply, and built-in plotting.</p></div>
+      <div class="comp"><h4>SQL (MySQL)</h4><p>Star-schema design, CTEs, CASE logic, joins and aggregation — the full analysis reproduced and validated.</p></div>
+      <div class="comp"><h4>Menu engineering</h4><p>Applying a recognised hospitality technique: classifying items by popularity and margin into actionable quadrants.</p></div>
+      <div class="comp"><h4>BI &amp; visualisation</h4><p>An interactive Tableau dashboard with KPIs, a menu-engineering scatter, and reliability and waste analysis.</p></div>
+      <div class="comp"><h4>Commercial insight</h4><p>Connecting demand, cost, and waste into a single set of time-phased recommendations.</p></div>
+      <div class="comp"><h4>Cross-tool validation</h4><p>Reproducing findings in both Python and SQL to confirm they hold.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Synthetic dataset, created to model realistic restaurant operations for portfolio demonstration.</p>
+    <p style="margin-top:10px"><a href="index.html">&larr; Back to portfolio</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
