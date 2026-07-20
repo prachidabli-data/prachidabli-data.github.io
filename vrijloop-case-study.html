@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A decision-analytics case study on a multi-quarter management simulation of an Amsterdam bicycle brand, built with Excel, MySQL and Power BI. Tracks decisions against outcomes through the lens of bounded rationality.">
+<title>VRIJLOOP — Decision Analytics | Prachi Dabli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#16294A;
+    --deep-navy:#0F1E33;
+    --navy-900:#0B1626;
+    --amber:#E0A030;
+    --cream:#FAF6EE;
+    --cream-2:#F3EDE1;
+    --ink:#16294A;
+    --muted:#5C6579;
+    --line:#E7DFD0;
+    --card:#FFFFFF;
+    --good:#3F7D5A;
+    --bad:#B23A3A;
+    --display:'Bricolage Grotesque',sans-serif;
+    --body:'Hanken Grotesk',sans-serif;
+    --maxw:960px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;font-family:var(--body);color:var(--ink);
+    background:var(--cream);line-height:1.65;font-size:17px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--navy);}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+
+  /* top nav */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 24px;background:rgba(250,246,238,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    display:flex;justify-content:space-between;align-items:center;
+    width:100%;max-width:var(--maxw);margin:0 auto;
+  }
+  .topbar a.back{
+    font-weight:600;text-decoration:none;font-size:15px;color:var(--navy);
+  }
+  .topbar a.back:hover{color:var(--amber);}
+  .topbar .name{font-family:var(--display);font-weight:700;color:var(--navy);}
+
+  /* hero */
+  .hero{
+    background:var(--navy);color:var(--cream);
+    padding:64px 0 72px;position:relative;overflow:hidden;
+  }
+  .hero .wrap{position:relative;z-index:2;}
+  .eyebrow{
+    text-transform:uppercase;letter-spacing:.14em;font-size:12.5px;
+    font-weight:700;color:var(--amber);margin:0 0 18px;
+  }
+  .hero h1{
+    font-family:var(--display);font-weight:800;
+    font-size:clamp(34px,6vw,56px);line-height:1.04;margin:0 0 20px;
+    letter-spacing:-.01em;
+  }
+  .hero p.lede{
+    font-size:clamp(17px,2.2vw,20px);color:#D7DEEA;max-width:640px;margin:0 0 28px;
+  }
+  .tags{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:26px;}
+  .tag{
+    border:1px solid rgba(224,160,48,.5);color:var(--amber);
+    padding:5px 13px;border-radius:100px;font-size:13px;font-weight:600;
+  }
+  .statline{
+    font-size:14.5px;color:#AEB8C9;border-top:1px solid rgba(255,255,255,.14);
+    padding-top:20px;
+  }
+  .statline b{color:var(--cream);font-weight:700;}
+  /* cyclist in hero */
+  .cyclist{
+    position:absolute;right:-10px;bottom:-8px;width:min(340px,42vw);
+    opacity:.95;z-index:1;pointer-events:none;
+  }
+  @media(max-width:720px){.cyclist{opacity:.16;right:-30px;}}
+
+  /* sections */
+  section{padding:56px 0;border-bottom:1px solid var(--line);}
+  section.alt{background:var(--cream-2);}
+  .label{
+    text-transform:uppercase;letter-spacing:.14em;font-size:12px;
+    font-weight:700;color:var(--amber);margin:0 0 10px;
+  }
+  h2{
+    font-family:var(--display);font-weight:700;
+    font-size:clamp(26px,3.6vw,36px);line-height:1.1;margin:0 0 22px;
+    letter-spacing:-.01em;color:var(--navy);
+  }
+  h3{
+    font-family:var(--display);font-weight:600;font-size:20px;
+    margin:26px 0 8px;color:var(--navy);
+  }
+  p{margin:0 0 16px;}
+  ul{margin:0 0 16px;padding-left:22px;}
+  li{margin-bottom:9px;}
+  strong{font-weight:700;}
+
+  /* dashboard block */
+  .dash{background:#0F1D36;color:var(--cream);text-align:center;border:none;}
+  .dash .label{color:var(--amber);}
+  .dash h2{color:var(--cream);}
+  .dash p{color:#C9D2E0;max-width:600px;margin:0 auto 26px;}
+  .shot{
+    display:block;width:100%;max-width:1000px;margin:0 auto;border-radius:10px;
+    border:1px solid rgba(255,255,255,.16);box-shadow:0 24px 60px rgba(0,0,0,.4);
+  }
+  .shotcap{font-size:13px;color:#9AA6BA;margin-top:14px;}
+  .btn{
+    display:inline-block;background:var(--amber);color:var(--navy);
+    text-decoration:none;font-weight:700;padding:12px 22px;border-radius:8px;
+    font-size:15px;margin-top:6px;transition:transform .12s ease;
+  }
+  .btn:hover{transform:translateY(-2px);}
+
+  /* KPI mini row */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 6px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 16px;}
+  .kpi .n{font-family:var(--display);font-weight:800;font-size:26px;color:var(--navy);line-height:1;}
+  .kpi .l{font-size:12.5px;color:var(--muted);margin-top:7px;}
+  @media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr);}}
+
+  /* callout */
+  .callout{
+    background:#FFF;border:1px solid var(--line);border-left:4px solid var(--amber);
+    border-radius:8px;padding:22px 24px;margin:26px 0;
+  }
+  .callout h3{margin-top:0;}
+
+  /* validation cards */
+  .vcard{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:26px 26px 22px;margin:22px 0;
+  }
+  .vcard .kicker{
+    font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--amber);margin-bottom:8px;
+  }
+  .vcard h3{margin:0 0 16px;font-size:22px;}
+  .step{display:grid;grid-template-columns:96px 1fr;gap:16px;margin-bottom:12px;align-items:start;}
+  .step .s{
+    font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--navy);background:var(--cream);border-radius:6px;padding:4px 0;text-align:center;
+  }
+  .step.diag .s{color:#8A5A00;}
+  .step.fix .s{color:var(--good);}
+  .step p{margin:0;}
+  pre{
+    background:var(--navy);color:#E9EEF6;border-radius:8px;padding:16px 18px;
+    overflow-x:auto;font-size:13px;line-height:1.55;margin:14px 0 4px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  pre .c{color:#9FB0C7;}
+  .shows{font-size:14.5px;color:var(--muted);margin-top:14px;}
+  .shows b{color:var(--navy);}
+
+  /* recommendations two-col */
+  .reco{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+  .reco h3{margin-top:0;}
+  @media(max-width:720px){.reco{grid-template-columns:1fr;}}
+
+  /* skills grid */
+  .skills{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .skill h3{margin:0 0 6px;font-size:17px;}
+  .skill p{font-size:14.5px;color:var(--muted);margin:0;}
+  @media(max-width:720px){.skills{grid-template-columns:1fr;}}
+
+  /* data table */
+  table{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:15px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);}
+  th{font-family:var(--display);font-weight:600;color:var(--navy);background:#fff;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+
+  footer{padding:40px 0 60px;text-align:center;}
+  footer a{font-weight:600;text-decoration:none;}
+  .disclaim{font-size:13px;color:var(--muted);max-width:640px;margin:0 auto 24px;}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <a class="back" href="https://prachidabli-data.github.io/index.html">← Back to portfolio</a>
+      <span class="name">Prachi Dabli</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <svg class="cyclist" viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="none" stroke="#E0A030" stroke-width="5" stroke-linecap="round" opacity="0.55">
+        <line x1="6" y1="70" x2="40" y2="70"/><line x1="2" y1="96" x2="30" y2="96"/><line x1="10" y1="122" x2="38" y2="122"/>
+      </g>
+      <circle cx="74" cy="152" r="38" fill="none" stroke="#FAF6EE" stroke-width="7"/>
+      <circle cx="206" cy="152" r="38" fill="none" stroke="#FAF6EE" stroke-width="7"/>
+      <g stroke="#FAF6EE" stroke-width="2" opacity="0.3">
+        <line x1="74" y1="120" x2="74" y2="184"/><line x1="42" y1="152" x2="106" y2="152"/>
+        <line x1="52" y1="130" x2="96" y2="174"/><line x1="96" y1="130" x2="52" y2="174"/>
+        <line x1="206" y1="120" x2="206" y2="184"/><line x1="174" y1="152" x2="238" y2="152"/>
+        <line x1="184" y1="130" x2="228" y2="174"/><line x1="228" y1="130" x2="184" y2="174"/>
+      </g>
+      <circle cx="74" cy="152" r="6" fill="#E0A030"/><circle cx="206" cy="152" r="6" fill="#E0A030"/>
+      <g fill="none" stroke="#FAF6EE" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="74" y1="152" x2="140" y2="152"/><line x1="140" y1="152" x2="120" y2="100"/><line x1="120" y1="100" x2="74" y2="152"/>
+        <line x1="140" y1="152" x2="176" y2="100"/><line x1="120" y1="100" x2="176" y2="100"/><line x1="176" y1="100" x2="206" y2="152"/>
+        <line x1="176" y1="100" x2="168" y2="88"/>
+      </g>
+      <path d="M108 98 q12 -4 24 0" fill="none" stroke="#FAF6EE" stroke-width="6" stroke-linecap="round"/>
+      <line x1="140" y1="152" x2="128" y2="164" stroke="#E0A030" stroke-width="5" stroke-linecap="round"/>
+      <path d="M124 96 L126 126 L136 158" fill="none" stroke="#FAF6EE" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M120 96 L156 70" fill="none" stroke="#E0A030" stroke-width="14" stroke-linecap="round"/>
+      <path d="M156 70 L170 92" fill="none" stroke="#FAF6EE" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="170" cy="54" r="15" fill="#FAF6EE" stroke="#0F1D36" stroke-width="3"/>
+      <path d="M154 50 a16 16 0 0 1 32 0 z" fill="#E0A030"/>
+      <line x1="186" y1="50" x2="193" y2="48" stroke="#E0A030" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="176" cy="54" r="2.2" fill="#16294A"/>
+      <path d="M172 60 q5 4 9 0" fill="none" stroke="#16294A" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+    <div class="wrap">
+      <p class="eyebrow">MSc Project · Decision Analytics</p>
+      <h1>VRIJLOOP — Decisions vs Outcomes</h1>
+      <p class="lede">A decision-analytics build on a multi-quarter management simulation of an Amsterdam bicycle brand. Instead of reporting performance, it tracks the decisions a team made each quarter against the outcomes they produced — and asks whether those were the right calls.</p>
+      <div class="tags">
+        <span class="tag">Excel (rules engine)</span>
+        <span class="tag">SQL (MySQL)</span>
+        <span class="tag">Power BI · DAX</span>
+        <span class="tag">Decision Analytics</span>
+      </div>
+      <p class="statline">6 quarters · 3 segments · quarter×product star schema · reconstructed simulation data · <b>bounded rationality quantified at €7.35M</b></p>
+    </div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section class="dash">
+    <div class="wrap">
+      <p class="label">Interactive Dashboard</p>
+      <h2>The Power BI dashboard</h2>
+      <p>A decision dashboard: KPI cards, a quarter timeline, the budget-versus-margin story, segment ratings, and a decision ledger of what was chosen and what followed.</p>
+      <a href="vrijloop_dashboard.png" target="_blank" rel="noopener" title="Open full-size in a new tab">
+        <img class="shot" src="vrijloop_dashboard.png" alt="VRIJLOOP Power BI dashboard showing KPI cards, budget-versus-margin chart, segment ratings and a decision ledger">
+      </a>
+      <p class="shotcap">Built in Power BI Desktop and shown here as a static image · click to open full-size. The full interactive report (.pbix) is available in the project repository.</p>
+      <p style="margin-top:18px;"><a class="btn" href="#" data-repo>View the project on GitHub ↗</a></p>
+    </div>
+  </section>
+
+  <!-- OBJECTIVE -->
+  <section>
+    <div class="wrap">
+      <p class="label">Objective</p>
+      <h2>The problem</h2>
+      <p>In the VRIJLOOP simulation, my team managed a bicycle brand across three market segments — <strong>Speed, Recreation and Mountain</strong> — making quarterly calls on pricing, marketing, product development, production and wages. Under time and information pressure, teams <strong>satisfice</strong>: they take the good-enough decision rather than the optimal one, and optimise the lever they can see instead of the lever that matters.</p>
+      <p>This project reconstructs that run as data and asks a sharper question than "how did we do?" It asks <strong>"were these the right decisions, and what did the wrong ones cost?"</strong> Two anchor mistakes drive the story: generic products sold with non-targeted advertising, and minimum wages used to cut costs.</p>
+      <div class="callout">
+        <h3>Bounded rationality, in one number</h3>
+        <p style="margin-bottom:0">The counterfactual model shows that doing the right thing — paying fair wages from the first quarter — was actually <strong>€260k worse in Q1</strong>, before it ever paid off. The correct decision looked worse on the quarter in front of you. That is precisely why a team judging quarter-by-quarter talked itself out of it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">The Data</p>
+      <h2>A reconstructed, rules-driven dataset</h2>
+      <p>This project uses a <strong>reconstructed dataset</strong> built to realistically mirror the VRIJLOOP simulation. The original platform exports were not available, so rather than hand-type plausible figures, I built a documented <strong>rules engine in Excel</strong>: every quarterly figure is generated from the team's decisions through causal rules, so the whole dataset is internally consistent by construction. Change one decision and the model re-flows.</p>
+      <p>The data is modelled as a <strong>star schema with two fact grains</strong> — a deliberate design choice, not an accident of the tables:</p>
+      <table>
+        <thead><tr><th>Table</th><th>Grain</th><th class="num">Rows</th></tr></thead>
+        <tbody>
+          <tr><td>fact_results</td><td>quarter × product</td><td class="num">18</td></tr>
+          <tr><td>fact_decisions</td><td>quarter × product</td><td class="num">18</td></tr>
+          <tr><td>fact_company</td><td>quarter</td><td class="num">6</td></tr>
+          <tr><td>dim_quarter / dim_segment / dim_product</td><td>reference data</td><td class="num">6 / 3 / 3</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:16px">Company-level decisions (wage, budget split, profit) sit at quarter grain so they are never duplicated across product rows and can't be accidentally triple-counted. Product-level decisions sit at quarter × product. Keeping the two grains separate is what lets a scenario tab hold decisions fixed, change two inputs, and recompute outcomes through the same rules.</p>
+    </div>
+  </section>
+
+  <!-- METHODOLOGY -->
+  <section>
+    <div class="wrap">
+      <p class="label">Methodology</p>
+      <h2>From decisions to a validated answer</h2>
+      <p>The pipeline runs <strong>Excel → MySQL → Power BI</strong>, and every layer was validated against the one before it. The Excel rules engine generates the data; MySQL models and interrogates it; Power BI tells the story.</p>
+
+      <h3>1 · The causal spine</h3>
+      <p>Positioning sets a product's rating ceiling; product-development spend lifts the rating with a one-quarter lag; the rating drives market share; share becomes units and revenue. On the people side, minimum wage collapses satisfaction, which lowers productivity, which raises unit cost <em>and</em> drags the rating further — a compounding loop. Marketing has diminishing returns gated by product fit.</p>
+
+      <h3>2 · The finding that anchors everything</h3>
+      <p>The central question — can you market your way past a poorly-rated product? — is answered with a correlation, hand-rolled in SQL because MySQL has no built-in function for it:</p>
+      <pre><span class="c">-- Pearson correlation of rating vs market share, across all 18 rows</span>
+SELECT ROUND(
+  (COUNT(*)*SUM(segment_rating*market_share) - SUM(segment_rating)*SUM(market_share))
+  / SQRT(
+      (COUNT(*)*SUM(segment_rating*segment_rating) - POWER(SUM(segment_rating),2)) *
+      (COUNT(*)*SUM(market_share*market_share)     - POWER(SUM(market_share),2))
+    ), 3) AS corr_rating_vs_share
+FROM fact_results;   <span class="c">-- returns 0.944</span></pre>
+      <p style="margin-top:14px">Share tracks rating at <strong>r = 0.944</strong>. The team's bet — spend on marketing rather than fix the product — was mathematically doomed. Holding ~90% of budget on marketing a product the Customer Union rated 2.7/10 returned almost nothing.</p>
+
+      <h3>3 · What the story looks like</h3>
+      <div class="kpis">
+        <div class="kpi"><div class="n">0.944</div><div class="l">rating ↔ share correlation</div></div>
+        <div class="kpi"><div class="n">−17.4%</div><div class="l">operating margin at the trough</div></div>
+        <div class="kpi"><div class="n">−€5.53M</div><div class="l">cumulative operating loss</div></div>
+        <div class="kpi"><div class="n">€7.35M</div><div class="l">cost of satisficing</div></div>
+      </div>
+      <p style="margin-top:16px">The business runs four straight quarters of losses, deepening to −17.4% as revenue falls ~40% while marketing spend stays high. The correction — fair wages and targeting the Speed segment — lifts Speed's rating from 2.7 back to 7.0, but Recreation and Mountain, left generic, recover only to ~4.0. Even the recovery was bounded.</p>
+    </div>
+  </section>
+
+  <!-- VALIDATION -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">Modelling &amp; Problem-Solving</p>
+      <h2>Two decisions that show the thinking</h2>
+      <p>A model is only as trustworthy as the judgement behind it. Two moments in the Power BI build are worth spelling out, because each is a place where the easy path gives a plausible but wrong answer.</p>
+
+      <div class="vcard">
+        <div class="kicker">Power BI · evaluation context</div>
+        <h3>A margin that couldn't be summed</h3>
+        <div class="step"><div class="s">Problem</div><p>The dashboard needed operating margin at both quarter level and across the whole six-quarter horizon. The tempting shortcut is to compute margin once and store it as a column.</p></div>
+        <div class="step diag"><div class="s">Diagnosis</div><p>A stored margin holds six fixed percentages. The total row could then only add them (meaningless) or average them — which would weight the €20.8M trough quarter equally with the €34.5M launch quarter. Both are wrong.</p></div>
+        <div class="step fix"><div class="s">Fix</div><p>Wrote margin as a DAX <em>measure</em>, so it re-divides in whatever context it is shown — per quarter at quarter level, and total profit over total revenue at the grand total, giving a correctly weighted −3.4%.</p></div>
+        <pre>Operating Margin % = DIVIDE([Operating Profit], [Total Revenue])</pre>
+        <p class="shows"><b>What it shows:</b> understanding evaluation context — that ratios must be measures, not stored columns, so they aggregate correctly at every level.</p>
+      </div>
+
+      <div class="vcard">
+        <div class="kicker">Power BI · data modelling</div>
+        <h3>When Power BI refused to combine two grains</h3>
+        <div class="step"><div class="s">Problem</div><p>Building the decision ledger, I tried to place <code>targeting_flag</code> (quarter × product grain) beside wage level and margin (quarter grain). Power BI returned "Can't determine relationships between the fields" and offered a one-click "Fix this."</p></div>
+        <div class="step diag"><div class="s">Diagnosis</div><p>For any given quarter there are three targeting values, one per product — no unambiguous single value to sit on a quarter-level row. Clicking "Fix this" would have added a relationship I didn't want and quietly compromised the star schema.</p></div>
+        <div class="step fix"><div class="s">Fix</div><p>Declined the auto-fix. Kept the two fact grains separate and presented the targeting decision on its own, rather than forcing a relationship to get a plausible-looking wrong answer.</p></div>
+        <p class="shows"><b>What it shows:</b> the exact fan-trap the two-fact-grain design was built to prevent, showing up live — and the discipline to resist a one-click fix that produces a wrong number.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATIONS -->
+  <section>
+    <div class="wrap">
+      <p class="label">Recommendations</p>
+      <h2>What the business should have done — and should do now</h2>
+      <p>The point of judging decisions is to say what better ones would have been. Split into the calls that should have been made at the outset, and the moves the data supports from the trough onward:</p>
+      <div class="reco">
+        <div>
+          <h3>At the start</h3>
+          <ul>
+            <li><strong>Target each product to its segment from Q1.</strong> Share tracks rating at 0.944; a generic, non-targeted product rated ~3/10 couldn't win share no matter the marketing behind it.</li>
+            <li><strong>Pay fair wages from Q1.</strong> Minimum wage didn't just cut costs — it collapsed satisfaction, dragging productivity and product quality, so the rating fell further. The saving was illusory.</li>
+            <li><strong>Weight budget toward product development early.</strong> You cannot market past a poorly-rated product; ~90% of budget on a 2.7/10 product returned almost nothing.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Right now</h3>
+          <ul>
+            <li><strong>Extend targeting to Recreation and Mountain.</strong> The data shows they never recovered because only Speed was re-targeted in the correction.</li>
+            <li><strong>Hold budget on product development until ratings clear ~6</strong>, then rebalance toward marketing once the product is worth advertising.</li>
+            <li><strong>Treat segment rating as the leading KPI.</strong> It moved a quarter ahead of margin every time — the early-warning signal that went unused.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">Competency Shown</p>
+      <h2>Skills demonstrated</h2>
+      <div class="skills">
+        <div class="skill"><h3>Excel financial modelling</h3><p>A four-layer rules engine with assumptions, a causal engine, clean outputs, and a scenario tab that recomputes the counterfactual.</p></div>
+        <div class="skill"><h3>SQL (MySQL)</h3><p>Star-schema DDL with enforced keys, a reusable view, window functions, and a hand-rolled Pearson correlation.</p></div>
+        <div class="skill"><h3>Power BI &amp; DAX</h3><p>Measures over calculated columns, evaluation context, quarter-on-quarter logic, KPI card design and a custom theme.</p></div>
+        <div class="skill"><h3>Data modelling</h3><p>Two fact grains chosen deliberately to avoid a fan-trap, validated live when Power BI refused to combine them.</p></div>
+        <div class="skill"><h3>Decision analytics</h3><p>Framing the decision as the unit of analysis and quantifying the cost of satisficing at €7.35M.</p></div>
+        <div class="skill"><h3>Cross-tool validation</h3><p>Every layer checked against the one before — the SQL outputs and Power BI figures tie back to the Excel model to the euro.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="disclaim">Reconstructed dataset, generated from a documented rules engine to model a real management simulation for portfolio demonstration. All figures are internally consistent by construction.</p>
+    <a href="https://prachidabli-data.github.io/index.html">← Back to portfolio</a>
+  </footer>
+
+</body>
+</html>
