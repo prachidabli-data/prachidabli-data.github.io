@@ -167,11 +167,11 @@
 <section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
   <div class="wrap">
     <div class="sec-label">The Data</div>
-    <h2>A realistic synthetic dataset</h2>
-    <p>The dataset is fully <strong>synthetic</strong>, generated programmatically in Python (NumPy) with a fixed random seed so every result on this page is reproducible. It was deliberately built with realistic statistical structure rather than a perfect textbook relationship:</p>
+    <h2>A controlled synthetic dataset</h2>
+    <p>The dataset is fully <strong>synthetic</strong>, generated programmatically in Python (NumPy) with a fixed random seed so every result on this page is reproducible. Calling it "realistic" would overstate the case: it is a controlled construction, built to exercise specific statistical techniques, not a validated model of how real students actually behave.</p>
     <ul>
-      <li>Exam score is generated as a <strong>weighted combination</strong> of the predictors below plus random noise, so relationships exist, but are realistically noisy rather than deterministic.</li>
-      <li>The five numeric predictors are <strong>not generated independently</strong>: a "conscientiousness" correlation structure is imposed via a Gaussian copula, so students who study more also tend to attend more and have a higher prior GPA, exactly as real study habits, attendance and attainment would move together. This is what gives the multicollinearity (VIF) check in Step 4 something real to measure.</li>
+      <li>Exam score is generated as a <strong>weighted combination</strong> of the predictors below plus random noise, so relationships exist, but are realistically noisy rather than deterministic. The exact weights are listed in the table below.</li>
+      <li>The five numeric predictors are <strong>correlated with each other by construction</strong>: a "conscientiousness" structure is imposed via a Gaussian copula (target correlations of roughly 0.25&ndash;0.35 between study hours, attendance and prior GPA), giving the multicollinearity (VIF) check in Step 4 something non-trivial to measure. The resulting VIFs (1.06&ndash;1.45) are a designed property of this simulation, chosen for illustration, and should not be read as an empirical estimate of how correlated these variables are in real educational data.</li>
       <li>A <strong>sleep penalty</strong> kicks in only below 6 hours a night, giving a mild non-linear effect to investigate.</li>
       <li>Study method groups are <strong>unevenly sized</strong> (self-study is most common, tutoring least), as they would be in a real cohort.</li>
       <li>Sleep hours is included specifically because it turns out to <strong>not</strong> matter much once the other predictors are in the model: a deliberate check against assuming every variable is significant.</li>
@@ -180,7 +180,7 @@
       <thead><tr><th>Column</th><th>Description</th><th>Type</th></tr></thead>
       <tbody>
         <tr><td>student_id</td><td>Unique synthetic student identifier</td><td>N/A</td></tr>
-        <tr><td>study_hours_per_week</td><td>Self-reported weekly study hours</td><td>Continuous</td></tr>
+        <tr><td>study_hours_per_week</td><td>Simulated weekly study hours</td><td>Continuous</td></tr>
         <tr><td>attendance_rate</td><td>Lecture/seminar attendance, %</td><td>Continuous</td></tr>
         <tr><td>sleep_hours</td><td>Average nightly sleep, hours</td><td>Continuous</td></tr>
         <tr><td>prior_gpa</td><td>Prior GPA on a 0–4 scale</td><td>Continuous</td></tr>
@@ -189,6 +189,23 @@
         <tr><td>exam_score</td><td>Final exam score, 0–100</td><td>Continuous (outcome)</td></tr>
       </tbody>
     </table>
+
+    <h4 style="margin:24px 0 6px;color:var(--navy-700);font-size:16px">The data-generating process</h4>
+    <p>Exam score is built directly from the table below: a fixed baseline plus each of these programmed effects plus random noise, then clipped to 0&ndash;100. Reproducing the exact numbers is straightforward from <code>01_generate_dataset.py</code>.</p>
+    <table class="data">
+      <thead><tr><th>Component</th><th>Programmed effect on exam score</th></tr></thead>
+      <tbody>
+        <tr><td>Study hours</td><td>+1.15 per hour</td></tr>
+        <tr><td>Attendance</td><td>+0.27 per percentage point</td></tr>
+        <tr><td>Prior GPA</td><td>+8.50 per GPA point</td></tr>
+        <tr><td>Extracurricular hours</td><td>&minus;0.30 per hour</td></tr>
+        <tr><td>Group study</td><td>+2.40 relative to self-study</td></tr>
+        <tr><td>Tutoring</td><td>+4.10 relative to self-study</td></tr>
+        <tr><td>Short-sleep deficit</td><td>&minus;1.80 per hour below six</td></tr>
+        <tr><td>Random noise</td><td>SD = 7.50</td></tr>
+      </tbody>
+    </table>
+    <p>These are <strong>assumed values chosen for demonstration</strong>. They are not estimates obtained from educational research, and no claim is made that real study hours, attendance or GPA affect exam performance by these amounts. One bookkeeping note for later: the table above expresses the two study-method effects relative to <strong>Self-study</strong> (the generator's internal baseline, effect = 0). The regression in Step 4 instead uses <strong>Group study</strong> as its reference category (chosen automatically, alphabetically), so the "true" values quoted there for comparison (&minus;2.40 for Self-study, +1.70 for Tutoring) are the same two numbers above, just rebased against Group study instead of Self-study.</p>
     <div class="dash-actions">
       <a class="btn btn-primary" href="statistical-modelling-project-1/data/student_exam_performance.csv" download>Download the dataset (.csv) &darr;</a>
       <a class="btn btn-ghost" href="statistical-modelling-project-1/code/01_generate_dataset.py" download>Dataset generator (.py) &darr;</a>
