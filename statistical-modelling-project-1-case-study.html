@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Statistical Modelling Project I — Prachi Dabli</title>
+<title>Statistical Modelling Project I | Prachi Dabli</title>
 <meta name="description" content="A BSc Mathematics statistical modelling case study covering distributions, correlation and regression, applied to a synthetic student exam-performance dataset in Python.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -125,8 +125,8 @@
 <header class="hero">
   <div class="wrap">
     <span class="eyebrow">Academic Project · BSc Mathematics · Statistical Modelling</span>
-    <h1>Statistical Modelling Project I — Student Exam Performance</h1>
-    <p class="lede">A demonstration of core statistical techniques — distributions, correlation and regression — applied to a synthetic student dataset to test hypotheses about what actually relates to exam performance.</p>
+    <h1>Statistical Modelling Project I: Student Exam Performance</h1>
+    <p class="lede">A demonstration of core statistical techniques (distributions, correlation and regression) applied to a synthetic student dataset to test hypotheses about what actually relates to exam performance.</p>
     <div class="chips">
       <span class="chip">Python</span>
       <span class="chip">pandas / NumPy</span>
@@ -152,8 +152,8 @@
   <div class="wrap">
     <div class="sec-label">Objective</div>
     <h2>The question</h2>
-    <p>The brief behind this piece of coursework was to take a dataset and demonstrate a full statistical workflow: describe it, understand how its variables are distributed, test whether variables relate to one another, and build a model that explains an outcome — all supported by formal hypothesis tests rather than eyeballed patterns.</p>
-    <p>The illustrative question chosen: <strong>what is actually associated with a student's exam score</strong> — and does it hold up once you the run the numbers, or is it just intuition? Six variables were modelled for 320 students: weekly study hours, attendance rate, sleep hours, prior GPA, extracurricular hours, and study method (self-study, group study, or tutoring).</p>
+    <p>The brief behind this piece of coursework was to take a dataset and demonstrate a full statistical workflow: describe it, understand how its variables are distributed, test whether variables relate to one another, and build a model that explains an outcome, with every step supported by formal hypothesis tests rather than eyeballed patterns.</p>
+    <p>The illustrative question chosen: <strong>what is actually associated with a student's exam score</strong>, and does it hold up once you run the numbers, or is it just intuition? Six variables were modelled for 320 students: weekly study hours, attendance rate, sleep hours, prior GPA, extracurricular hours, and study method (self-study, group study, or tutoring).</p>
     <ul>
       <li>Is the exam score roughly normally distributed, and how spread out is it?</li>
       <li>Which variables correlate meaningfully with exam performance, and which don't?</li>
@@ -171,15 +171,15 @@
     <h2>A realistic synthetic dataset</h2>
     <p>The dataset is fully <strong>synthetic</strong>, generated programmatically in Python (NumPy) with a fixed random seed so every result on this page is reproducible. It was deliberately built with realistic statistical structure rather than a perfect textbook relationship:</p>
     <ul>
-      <li>Exam score is generated as a <strong>weighted combination</strong> of the predictors below plus random noise — so relationships exist, but are realistically noisy rather than deterministic.</li>
+      <li>Exam score is generated as a <strong>weighted combination</strong> of the predictors below plus random noise, so relationships exist, but are realistically noisy rather than deterministic.</li>
       <li>A <strong>sleep penalty</strong> kicks in only below 6 hours a night, giving a mild non-linear effect to investigate.</li>
       <li>Study method groups are <strong>unevenly sized</strong> (self-study is most common, tutoring least), as they would be in a real cohort.</li>
-      <li>Several predictors (sleep, extracurricular hours) are included specifically because they turn out <strong>not</strong> to matter much — a deliberate check against assuming every variable is significant.</li>
+      <li>Several predictors (sleep, extracurricular hours) are included specifically because they turn out <strong>not</strong> to matter much: a deliberate check against assuming every variable is significant.</li>
     </ul>
     <table class="data">
       <thead><tr><th>Column</th><th>Description</th><th>Type</th></tr></thead>
       <tbody>
-        <tr><td>student_id</td><td>Unique synthetic student identifier</td><td>—</td></tr>
+        <tr><td>student_id</td><td>Unique synthetic student identifier</td><td>N/A</td></tr>
         <tr><td>study_hours_per_week</td><td>Self-reported weekly study hours</td><td>Continuous</td></tr>
         <tr><td>attendance_rate</td><td>Lecture/seminar attendance, %</td><td>Continuous</td></tr>
         <tr><td>sleep_hours</td><td>Average nightly sleep, hours</td><td>Continuous</td></tr>
@@ -203,8 +203,8 @@
     <div class="sec-label">Methodology</div>
     <h2>From raw data to tested hypotheses</h2>
 
-    <h3>Step 1 — Descriptive statistics &amp; distribution</h3>
-    <p>Before testing relationships, the shape of the outcome variable needs checking — regression and t-tests lean on assumptions about the data's distribution. Exam scores were plotted and tested for normality with a <strong>Shapiro-Wilk test</strong>.</p>
+    <h3>Step 1: Descriptive statistics &amp; distribution</h3>
+    <p>Before testing relationships, the shape of the outcome variable needs checking: regression and t-tests lean on assumptions about the data's distribution. Exam scores were plotted and tested for normality with a <strong>Shapiro-Wilk test</strong>.</p>
     <p class="demo-note">Demonstrates: descriptive statistics, distribution visualisation, formal normality testing.</p>
   </div>
 </section>
@@ -220,13 +220,13 @@
       <div class="stat"><div class="n">p = 0.497</div><div class="l">Shapiro-Wilk p-value <span class="sig sig-no">Fails to reject normality</span></div></div>
       <div class="stat"><div class="n">0.02</div><div class="l">Skewness (near-symmetric)</div></div>
     </div>
-    <p class="fig-cap">With p = 0.497 (&gt; .05), the Shapiro-Wilk test does not reject normality — the exam-score distribution is close to bell-shaped, with skewness near zero. That justifies using regression and t-tests, both of which assume approximately normal, continuous outcomes.</p>
+    <p class="fig-cap">With p = 0.497 (&gt; .05), the Shapiro-Wilk test does not reject normality: the exam-score distribution is close to bell-shaped, with skewness near zero. That justifies using regression and t-tests, both of which assume approximately normal, continuous outcomes.</p>
   </div>
 </section>
 
 <section style="padding-top:0">
   <div class="wrap">
-    <h3>Step 2 — Correlation analysis</h3>
+    <h3>Step 2: Correlation analysis</h3>
     <p>A Pearson correlation matrix across all numeric variables shows which predictors actually move with exam score, before any model is fitted.</p>
     <p class="demo-note">Demonstrates: correlation analysis, statistical significance testing, avoiding the assumption that every variable matters.</p>
   </div>
@@ -249,7 +249,7 @@
             <tr><td>extracurricular_hours</td><td>0.027</td><td>0.634</td></tr>
           </tbody>
         </table>
-        <p style="font-size:14.5px">Study hours, attendance, and prior GPA all correlate significantly with exam score. Sleep and extracurricular commitment do not reach significance at the 5% level — a useful finding in itself, since it stops the analysis reading too much into weak relationships.</p>
+        <p style="font-size:14.5px">Study hours, attendance, and prior GPA all correlate significantly with exam score. Sleep and extracurricular commitment do not reach significance at the 5% level: a useful finding in itself, since it stops the analysis reading too much into weak relationships.</p>
       </div>
     </div>
   </div>
@@ -257,7 +257,7 @@
 
 <section style="padding-top:0">
   <div class="wrap">
-    <h3>Step 3 — Simple linear regression</h3>
+    <h3>Step 3: Simple linear regression</h3>
     <p>Study hours showed the strongest single correlation, so it was modelled first on its own: <code>exam_score ~ study_hours_per_week</code>, fitted by ordinary least squares (OLS) in <code>statsmodels</code>.</p>
     <pre><code>model = smf.ols("exam_score ~ study_hours_per_week", data=df).fit()</code></pre>
     <p class="demo-note">Demonstrates: simple linear regression, interpreting slope/intercept, R² as goodness of fit.</p>
@@ -275,13 +275,13 @@
       <div class="stat"><div class="n">R² = 0.268</div><div class="l">Variance explained by study hours alone</div></div>
       <div class="stat"><div class="n">p &lt; .001</div><div class="l">Slope is statistically significant</div></div>
     </div>
-    <p class="fig-cap">Each extra hour of weekly study is associated with roughly 1.4 additional exam points. But study hours alone explain under 27% of the variation in scores — a clear sign that other factors matter too, which motivates the multiple regression below.</p>
+    <p class="fig-cap">Each extra hour of weekly study is associated with roughly 1.4 additional exam points. But study hours alone explain under 27% of the variation in scores: a clear sign that other factors matter too, which motivates the multiple regression below.</p>
   </div>
 </section>
 
 <section style="padding-top:0">
   <div class="wrap">
-    <h3>Step 4 — Multiple linear regression</h3>
+    <h3>Step 4: Multiple linear regression</h3>
     <p>All five numeric predictors plus study method (as a categorical dummy) were entered into a multiple OLS regression, to see how much of exam score they jointly explain and which stay significant once the others are controlled for.</p>
     <pre><code>model = smf.ols(
     "exam_score ~ study_hours_per_week + attendance_rate + sleep_hours "
@@ -320,7 +320,7 @@
         <div class="stat"><div class="n">+6.74</div><div class="l">Mean point difference</div></div>
         <div class="stat"><div class="n">[4.56, 8.92]</div><div class="l">95% confidence interval for the difference</div></div>
       </div>
-      <p>The gap is both statistically significant and practically meaningful — a nearly 7-point average advantage for consistent attendance, with a 95% CI that comfortably excludes zero.</p>
+      <p>The gap is both statistically significant and practically meaningful: a nearly 7-point average advantage for consistent attendance, with a 95% CI that comfortably excludes zero.</p>
     </div>
 
     <div class="bq">
@@ -330,7 +330,7 @@
         <div class="stat"><div class="n">F = 2.28</div><div class="l">One-way ANOVA F-statistic</div></div>
         <div class="stat"><div class="n">p = 0.104</div><div class="l">p-value <span class="sig sig-no">Fail to reject H₀</span></div></div>
       </div>
-      <p>Despite tutoring students scoring highest on average, the difference between groups is <strong>not statistically significant</strong> at the 5% level. This is a genuinely useful negative result: on this data, it would be overreaching to claim study method drives exam performance — the apparent gap could plausibly be down to chance, at least at this sample size.</p>
+      <p>Despite tutoring students scoring highest on average, the difference between groups is <strong>not statistically significant</strong> at the 5% level. This is a genuinely useful negative result: on this data, it would be overreaching to claim study method drives exam performance. The apparent gap could plausibly be down to chance, at least at this sample size.</p>
     </div>
 
     <div class="fig">
@@ -350,9 +350,9 @@
       <li><strong>Study hours, attendance, and prior GPA</strong> are all significantly correlated with exam score; sleep and extracurricular commitment are not, at least not on their own.</li>
       <li>A <strong>simple regression</strong> on study hours alone explains ~27% of score variation; a <strong>multiple regression</strong> combining the significant predictors nearly doubles that, to ~48%.</li>
       <li>Students attending ≥85% of sessions score <strong>~6.7 points higher on average</strong>, a statistically significant and practically meaningful gap (Welch's t-test, p &lt; .001).</li>
-      <li><strong>Study method does not show a statistically significant effect</strong> (ANOVA, p = 0.104) — a reminder that an eye-catching pattern in a bar chart still needs a formal test before it's treated as a finding.</li>
+      <li><strong>Study method does not show a statistically significant effect</strong> (ANOVA, p = 0.104): a reminder that an eye-catching pattern in a bar chart still needs a formal test before it's treated as a finding.</li>
     </ul>
-    <p>The overall workflow — distribution check, correlation screening, simple then multiple regression, and formal hypothesis testing — is the same structure used in every later analytics project in this portfolio, just applied here to its purest, most mathematical form.</p>
+    <p>The overall workflow (distribution check, correlation screening, simple then multiple regression, and formal hypothesis testing) is the same structure used in every later analytics project in this portfolio, just applied here to its purest, most mathematical form.</p>
   </div>
 </section>
 
