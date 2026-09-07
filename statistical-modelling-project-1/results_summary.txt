@@ -39,7 +39,7 @@ exam_score                            0.517  ...       1.000
   exam_score vs extracurricular_hours: r = 0.027, p = 0.6335
 
 ======================================================================
-4. SIMPLE LINEAR REGRESSION — exam_score ~ study_hours_per_week
+4. SIMPLE LINEAR REGRESSION: exam_score ~ study_hours_per_week
 ======================================================================
                             OLS Regression Results                            
 ==============================================================================
@@ -47,7 +47,7 @@ Dep. Variable:             exam_score   R-squared:                       0.268
 Model:                            OLS   Adj. R-squared:                  0.265
 Method:                 Least Squares   F-statistic:                     116.2
 Date:                Mon, 07 Sep 2026   Prob (F-statistic):           2.64e-23
-Time:                        12:54:26   Log-Likelihood:                -1152.3
+Time:                        15:12:18   Log-Likelihood:                -1152.3
 No. Observations:                 320   AIC:                             2309.
 Df Residuals:                     318   BIC:                             2316.
 Df Model:                           1                                         
@@ -76,7 +76,7 @@ Dep. Variable:             exam_score   R-squared:                       0.479
 Model:                            OLS   Adj. R-squared:                  0.468
 Method:                 Least Squares   F-statistic:                     41.01
 Date:                Mon, 07 Sep 2026   Prob (F-statistic):           9.57e-41
-Time:                        12:54:26   Log-Likelihood:                -1097.7
+Time:                        15:12:19   Log-Likelihood:                -1097.7
 No. Observations:                 320   AIC:                             2211.
 Df Residuals:                     312   BIC:                             2242.
 Df Model:                           7                                         
@@ -112,7 +112,7 @@ Variance Inflation Factors:
 extracurricular_hours 1.02
 
 ======================================================================
-6. TWO-SAMPLE T-TEST — attendance >= 85% vs < 85%
+6. TWO-SAMPLE T-TEST: attendance >= 85% vs < 85%
 ======================================================================
 High-attendance group: n = 126, mean = 76.13, sd = 9.48
 Low-attendance group:  n = 194, mean = 69.38, sd = 10.08
@@ -121,7 +121,7 @@ Welch's t-test: t = 6.064, p = 4.306e-09
 Mean difference = 6.74 points, 95% CI = [4.56, 8.92]
 
 ======================================================================
-7. ONE-WAY ANOVA — exam_score by study_method
+7. ONE-WAY ANOVA: exam_score by study_method
 ======================================================================
 F-statistic = 2.279, p = 0.104
 -> No statistically significant difference between groups (p >= .05)

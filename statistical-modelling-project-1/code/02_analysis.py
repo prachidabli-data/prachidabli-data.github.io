@@ -1,5 +1,5 @@
 """
-Statistical Modelling Project I — analysis.
+Statistical Modelling Project I: analysis.
 
 Demonstrates: descriptive statistics, distribution checks, correlation
 analysis, simple & multiple linear regression, and hypothesis testing
@@ -99,7 +99,7 @@ plt.close(fig)
 # 4. SIMPLE LINEAR REGRESSION: exam_score ~ study_hours_per_week
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
-log("4. SIMPLE LINEAR REGRESSION — exam_score ~ study_hours_per_week")
+log("4. SIMPLE LINEAR REGRESSION: exam_score ~ study_hours_per_week")
 log("=" * 70)
 
 simple_model = smf.ols("exam_score ~ study_hours_per_week", data=df).fit()
@@ -149,10 +149,10 @@ log("\nVariance Inflation Factors:")
 log(vif.to_string(index=False))
 
 # ---------------------------------------------------------------------------
-# 6. HYPOTHESIS TEST — two-sample t-test on attendance split
+# 6. HYPOTHESIS TEST: two-sample t-test on attendance split
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
-log("6. TWO-SAMPLE T-TEST — attendance >= 85% vs < 85%")
+log("6. TWO-SAMPLE T-TEST: attendance >= 85% vs < 85%")
 log("=" * 70)
 
 high_att = df.loc[df["attendance_rate"] >= 85, "exam_score"]
@@ -174,10 +174,10 @@ ci_low, ci_high = mean_diff - 1.96 * se_diff, mean_diff + 1.96 * se_diff
 log(f"Mean difference = {mean_diff:.2f} points, 95% CI = [{ci_low:.2f}, {ci_high:.2f}]")
 
 # ---------------------------------------------------------------------------
-# 7. ONE-WAY ANOVA — exam_score by study_method
+# 7. ONE-WAY ANOVA: exam_score by study_method
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
-log("7. ONE-WAY ANOVA — exam_score by study_method")
+log("7. ONE-WAY ANOVA: exam_score by study_method")
 log("=" * 70)
 
 groups = [g["exam_score"].values for _, g in df.groupby("study_method")]
