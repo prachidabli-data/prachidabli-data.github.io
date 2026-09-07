@@ -2,9 +2,19 @@
 Statistical Modelling Project I: analysis.
 
 Demonstrates: descriptive statistics, distribution checks, correlation
-analysis, simple & multiple linear regression, and hypothesis testing
-(two-sample t-test, one-way ANOVA), on the synthetic student exam-
-performance dataset.
+analysis, simple & multiple linear regression, regression diagnostics
+(residuals, heteroscedasticity, influence), multicollinearity (VIF), and
+hypothesis testing (two-sample t-test, one-way ANOVA), on the synthetic
+student exam-performance dataset.
+
+Note on the "true" coefficients: because this dataset is synthetic, the
+exact coefficients used to generate exam_score are known (see
+01_generate_dataset.py). Several sections below compare the fitted
+regression estimates to those true values, which is only possible because
+the data is simulated — it is not something you could do with real data,
+where the "true" relationship is unknown. That comparison is used here to
+show the model recovering a known signal from noisy, correlated data,
+not to claim real-world practical significance.
 
 Outputs:
   - Console summary of every test (also written to results_summary.txt)
@@ -20,6 +30,8 @@ import seaborn as sns
 from scipy import stats
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from statsmodels.stats.diagnostic import het_breuschpagan
+from statsmodels.stats.outliers_influence import variance_inflation_factor, OLSInfluence
 
 sns.set_theme(style="whitegrid", font_scale=1.02)
 PALETTE = {"navy": "#16294A", "amber": "#E0A030", "navy_light": "#33547F"}
@@ -27,6 +39,18 @@ PALETTE = {"navy": "#16294A", "amber": "#E0A030", "navy_light": "#33547F"}
 DATA_PATH = "statistical-modelling-project-1/data/student_exam_performance.csv"
 IMG_DIR = "statistical-modelling-project-1/images"
 RESULTS_PATH = "statistical-modelling-project-1/results_summary.txt"
+
+# True generating coefficients, duplicated from 01_generate_dataset.py so this
+# script can be read and re-run independently.
+TRUE_COEFS = {
+    "intercept": 12.0,
+    "study_hours_per_week": 1.15,
+    "attendance_rate": 0.27,
+    "prior_gpa": 8.5,
+    "extracurricular_hours": -0.30,
+    "study_method_self_study_vs_group": -2.4,
+    "study_method_tutoring_vs_group": 1.7,
+}
 
 df = pd.read_csv(DATA_PATH)
 
@@ -43,16 +67,18 @@ desc = df.select_dtypes("number").describe().round(2)
 log(desc)
 
 # ---------------------------------------------------------------------------
-# 2. DISTRIBUTION OF EXAM SCORE
+# 2. DISTRIBUTION OF EXAM SCORE (descriptive only)
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
-log("2. DISTRIBUTION OF EXAM SCORE")
+log("2. DISTRIBUTION OF EXAM SCORE (descriptive)")
 log("=" * 70)
+log("This describes the outcome variable's shape before any model is fitted.")
+log("It is NOT a test of OLS assumptions: OLS requires well-behaved RESIDUALS")
+log("(linearity, constant variance, independence, approx. normal errors), not")
+log("a normally-distributed raw outcome. Residual diagnostics are in section 7.")
 
 shapiro_stat, shapiro_p = stats.shapiro(df["exam_score"])
-log(f"Shapiro-Wilk normality test: W = {shapiro_stat:.4f}, p = {shapiro_p:.4f}")
-log("-> " + ("Fails to reject normality (p > .05)" if shapiro_p > 0.05
-             else "Rejects normality (p <= .05)"))
+log(f"Shapiro-Wilk test on exam_score itself: W = {shapiro_stat:.4f}, p = {shapiro_p:.4f}")
 log(f"Skewness: {stats.skew(df['exam_score']):.3f}, "
     f"Kurtosis (excess): {stats.kurtosis(df['exam_score']):.3f}")
 
@@ -82,9 +108,15 @@ num_cols = ["study_hours_per_week", "attendance_rate", "sleep_hours",
 corr = df[num_cols].corr(method="pearson").round(3)
 log(corr)
 
+log("\nCorrelation with exam_score:")
 for col in num_cols[:-1]:
     r, p = stats.pearsonr(df[col], df["exam_score"])
     log(f"  exam_score vs {col}: r = {r:.3f}, p = {p:.4g}")
+
+log("\nThe predictors are also correlated with EACH OTHER by design (a")
+log("'conscientiousness' structure was built into the data generator), most")
+log("notably study_hours vs attendance and study_hours vs prior_gpa. This")
+log("intercorrelation is revisited as multicollinearity in section 6.")
 
 fig, ax = plt.subplots(figsize=(7, 5.6))
 sns.heatmap(corr, annot=True, fmt=".2f", cmap="RdYlBu_r", center=0,
@@ -128,6 +160,9 @@ plt.close(fig)
 log("\n" + "=" * 70)
 log("5. MULTIPLE LINEAR REGRESSION")
 log("=" * 70)
+log("Categorical study_method is dummy-coded with 'Group study' as the")
+log("reference level (dropped alphabetically first). Coefficients on")
+log("'Self-study' and 'Tutoring' are each read relative to Group study.")
 
 multi_model = smf.ols(
     "exam_score ~ study_hours_per_week + attendance_rate + sleep_hours "
@@ -136,24 +171,134 @@ multi_model = smf.ols(
 ).fit()
 log(multi_model.summary())
 
-# Variance Inflation Factors (multicollinearity check)
-from statsmodels.stats.outliers_influence import variance_inflation_factor
-X = df[["study_hours_per_week", "attendance_rate", "sleep_hours",
-        "prior_gpa", "extracurricular_hours"]].copy()
-X = sm.add_constant(X)
-vif = pd.DataFrame({
-    "variable": X.columns,
-    "VIF": [variance_inflation_factor(X.values, i) for i in range(X.shape[1])],
-}).round(2)
-log("\nVariance Inflation Factors:")
-log(vif.to_string(index=False))
+log("\nFitted estimate vs. TRUE generating coefficient (recoverable only")
+log("because this dataset is simulated; not a real-data diagnostic):")
+compare_rows = [
+    ("study_hours_per_week", "study_hours_per_week"),
+    ("attendance_rate", "attendance_rate"),
+    ("prior_gpa", "prior_gpa"),
+    ("extracurricular_hours", "extracurricular_hours"),
+    ("C(study_method)[T.Self-study]", "study_method_self_study_vs_group"),
+    ("C(study_method)[T.Tutoring]", "study_method_tutoring_vs_group"),
+]
+for param_name, true_key in compare_rows:
+    est = multi_model.params[param_name]
+    log(f"  {param_name}: estimated = {est:.3f}, true = {TRUE_COEFS[true_key]:.3f}")
 
 # ---------------------------------------------------------------------------
-# 6. HYPOTHESIS TEST: two-sample t-test on attendance split
+# 6. MULTICOLLINEARITY (VIF) — includes the study_method dummies
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
-log("6. TWO-SAMPLE T-TEST: attendance >= 85% vs < 85%")
+log("6. MULTICOLLINEARITY — Variance Inflation Factors")
 log("=" * 70)
+
+method_dummies = pd.get_dummies(df["study_method"], drop_first=True, dtype=float)
+X_vif = pd.concat([
+    df[["study_hours_per_week", "attendance_rate", "sleep_hours",
+        "prior_gpa", "extracurricular_hours"]],
+    method_dummies,
+], axis=1)
+X_vif = sm.add_constant(X_vif)
+vif = pd.DataFrame({
+    "variable": X_vif.columns,
+    "VIF": [variance_inflation_factor(X_vif.values, i) for i in range(X_vif.shape[1])],
+}).round(2)
+log(vif.to_string(index=False))
+log("\nAll VIFs stay comfortably below the common concern threshold of 5,")
+log("but they are now meaningfully above 1.0 (unlike an independently-drawn")
+log("predictor set), reflecting the correlation deliberately built between")
+log("study_hours, attendance and prior_gpa.")
+
+# ---------------------------------------------------------------------------
+# 7. REGRESSION DIAGNOSTICS (on the multiple regression model)
+# ---------------------------------------------------------------------------
+log("\n" + "=" * 70)
+log("7. REGRESSION DIAGNOSTICS (multiple regression residuals)")
+log("=" * 70)
+
+fitted = multi_model.fittedvalues
+resid = multi_model.resid
+influence = OLSInfluence(multi_model)
+standardized_resid = influence.resid_studentized_internal
+cooks_d = influence.cooks_distance[0]
+
+shapiro_resid_stat, shapiro_resid_p = stats.shapiro(resid)
+log(f"Shapiro-Wilk on RESIDUALS: W = {shapiro_resid_stat:.4f}, p = {shapiro_resid_p:.4f}")
+log("-> " + ("Fails to reject residual normality (p > .05)" if shapiro_resid_p > 0.05
+             else "Rejects residual normality (p <= .05)"))
+
+bp_stat, bp_p, bp_f, bp_f_p = het_breuschpagan(resid, multi_model.model.exog)
+log(f"Breusch-Pagan test (heteroscedasticity): LM = {bp_stat:.3f}, p = {bp_p:.4g}")
+log("-> " + ("No evidence of heteroscedasticity (p > .05)" if bp_p > 0.05
+             else "Evidence of heteroscedasticity (p <= .05): variance of residuals"
+                  " is not constant across fitted values"))
+
+log(f"Durbin-Watson (independence of residuals): {sm.stats.stattools.durbin_watson(resid):.3f}"
+    " (~2 indicates little autocorrelation)")
+
+n_obs = len(df)
+cooks_threshold = 4 / n_obs
+n_influential = int((cooks_d > cooks_threshold).sum())
+log(f"Cook's distance: max = {cooks_d.max():.4f}, "
+    f"{n_influential} of {n_obs} points exceed the 4/n = {cooks_threshold:.4f} "
+    f"rule-of-thumb threshold for influence")
+
+fig, axes = plt.subplots(2, 2, figsize=(11, 9))
+
+ax = axes[0, 0]
+ax.scatter(fitted, resid, alpha=0.45, color=PALETTE["navy_light"], s=26)
+ax.axhline(0, color=PALETTE["amber"], linewidth=2, linestyle="--")
+sns.regplot(x=fitted, y=resid, lowess=True, scatter=False, ax=ax,
+            line_kws={"color": PALETTE["navy"], "linewidth": 1.6})
+ax.set_title("Residuals vs Fitted", fontsize=12, weight="bold")
+ax.set_xlabel("Fitted values")
+ax.set_ylabel("Residuals")
+
+ax = axes[0, 1]
+sm.qqplot(standardized_resid, line="45", ax=ax, markerfacecolor=PALETTE["navy_light"],
+          markeredgecolor=PALETTE["navy_light"], alpha=0.5)
+ax.get_lines()[1].set_color(PALETTE["amber"])
+ax.get_lines()[1].set_linewidth(2)
+ax.set_title("Normal Q-Q (standardized residuals)", fontsize=12, weight="bold")
+
+ax = axes[1, 0]
+sqrt_abs_resid = np.sqrt(np.abs(standardized_resid))
+ax.scatter(fitted, sqrt_abs_resid, alpha=0.45, color=PALETTE["navy_light"], s=26)
+sns.regplot(x=fitted, y=sqrt_abs_resid, lowess=True, scatter=False, ax=ax,
+            line_kws={"color": PALETTE["navy"], "linewidth": 1.6})
+ax.set_title("Scale-Location", fontsize=12, weight="bold")
+ax.set_xlabel("Fitted values")
+ax.set_ylabel("sqrt(|standardized residual|)")
+
+ax = axes[1, 1]
+ax.stem(np.arange(n_obs), cooks_d, markerfmt=",", basefmt=" ",
+        linefmt=PALETTE["navy_light"])
+ax.axhline(cooks_threshold, color=PALETTE["amber"], linestyle="--", linewidth=2,
+           label=f"4/n = {cooks_threshold:.3f}")
+ax.set_title("Cook's Distance", fontsize=12, weight="bold")
+ax.set_xlabel("Observation index")
+ax.set_ylabel("Cook's distance")
+ax.legend()
+
+fig.suptitle("Multiple Regression Diagnostics", fontsize=14, weight="bold", y=1.0)
+fig.tight_layout()
+fig.savefig(f"{IMG_DIR}/05_regression_diagnostics.png", dpi=150, bbox_inches="tight")
+plt.close(fig)
+
+# ---------------------------------------------------------------------------
+# 8. HYPOTHESIS TEST — two-sample t-test on attendance split
+# ---------------------------------------------------------------------------
+log("\n" + "=" * 70)
+log("8. TWO-SAMPLE T-TEST: attendance >= 85% vs < 85%")
+log("=" * 70)
+log("Caveat: 85% is an arbitrary cut point chosen only to illustrate a")
+log("two-sample test. Dichotomizing a continuous variable discards")
+log("information and can understate or distort the relationship; the")
+log("continuous regression coefficient on attendance_rate in section 5")
+log("(and the Pearson correlation in section 3) is the more complete and")
+log("statistically preferable summary of this relationship. The t-test")
+log("below is included as a worked example of the technique, not as the")
+log("primary evidence for an attendance effect.")
 
 high_att = df.loc[df["attendance_rate"] >= 85, "exam_score"]
 low_att = df.loc[df["attendance_rate"] < 85, "exam_score"]
@@ -167,17 +312,16 @@ log(f"Welch's t-test: t = {t_stat:.3f}, p = {t_p:.4g}")
 log("-> " + ("Statistically significant difference (p < .05)" if t_p < 0.05
              else "No statistically significant difference (p >= .05)"))
 
-# 95% CI for the mean difference
 mean_diff = high_att.mean() - low_att.mean()
 se_diff = np.sqrt(high_att.var(ddof=1) / len(high_att) + low_att.var(ddof=1) / len(low_att))
 ci_low, ci_high = mean_diff - 1.96 * se_diff, mean_diff + 1.96 * se_diff
 log(f"Mean difference = {mean_diff:.2f} points, 95% CI = [{ci_low:.2f}, {ci_high:.2f}]")
 
 # ---------------------------------------------------------------------------
-# 7. ONE-WAY ANOVA: exam_score by study_method
+# 9. ONE-WAY ANOVA — exam_score by study_method
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
-log("7. ONE-WAY ANOVA: exam_score by study_method")
+log("9. ONE-WAY ANOVA: exam_score by study_method")
 log("=" * 70)
 
 groups = [g["exam_score"].values for _, g in df.groupby("study_method")]
@@ -192,7 +336,9 @@ log(group_means)
 fig, ax = plt.subplots(figsize=(7.5, 5))
 order = ["Self-study", "Group study", "Tutoring"]
 sns.boxplot(x="study_method", y="exam_score", data=df, order=order,
-            palette=[PALETTE["navy_light"], PALETTE["amber"], PALETTE["navy"]], ax=ax)
+            hue="study_method", hue_order=order,
+            palette=[PALETTE["navy_light"], PALETTE["amber"], PALETTE["navy"]],
+            legend=False, ax=ax)
 sns.stripplot(x="study_method", y="exam_score", data=df, order=order,
               color="black", alpha=0.25, size=3, jitter=0.2, ax=ax)
 ax.set_title(f"Exam Score by Study Method\nOne-way ANOVA: F = {f_stat:.2f}, p = {anova_p:.4g}",

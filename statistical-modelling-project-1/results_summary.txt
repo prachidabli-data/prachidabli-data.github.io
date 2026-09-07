@@ -3,65 +3,75 @@
 ======================================================================
        study_hours_per_week  attendance_rate  ...  extracurricular_hours  exam_score
 count                320.00           320.00  ...                 320.00      320.00
-mean                  11.92            78.86  ...                   4.06       72.04
-std                    3.94            14.74  ...                   2.07       10.37
-min                    1.22            27.60  ...                   0.00       43.90
-25%                    9.22            69.75  ...                   3.00       64.30
-50%                   11.78            81.55  ...                   4.00       72.95
-75%                   14.13            90.40  ...                   5.00       79.20
-max                   24.24            99.30  ...                  14.00      100.00
+mean                  11.91            78.80  ...                   3.79       72.03
+std                    4.07            14.52  ...                   1.96       11.84
+min                    1.58            27.60  ...                   0.00       35.60
+25%                    9.12            69.90  ...                   2.00       63.85
+50%                   11.88            82.65  ...                   4.00       72.10
+75%                   14.37            89.70  ...                   5.00       81.03
+max                   21.78            99.80  ...                  11.00      100.00
 
 [8 rows x 6 columns]
 
 ======================================================================
-2. DISTRIBUTION OF EXAM SCORE
+2. DISTRIBUTION OF EXAM SCORE (descriptive)
 ======================================================================
-Shapiro-Wilk normality test: W = 0.9956, p = 0.4970
--> Fails to reject normality (p > .05)
-Skewness: 0.016, Kurtosis (excess): -0.371
+This describes the outcome variable's shape before any model is fitted.
+It is NOT a test of OLS assumptions: OLS requires well-behaved RESIDUALS
+(linearity, constant variance, independence, approx. normal errors), not
+a normally-distributed raw outcome. Residual diagnostics are in section 7.
+Shapiro-Wilk test on exam_score itself: W = 0.9952, p = 0.4166
+Skewness: -0.120, Kurtosis (excess): -0.235
 
 ======================================================================
 3. CORRELATION ANALYSIS (Pearson)
 ======================================================================
                        study_hours_per_week  ...  exam_score
-study_hours_per_week                  1.000  ...       0.517
-attendance_rate                       0.022  ...       0.348
-sleep_hours                           0.086  ...       0.065
-prior_gpa                             0.090  ...       0.330
-extracurricular_hours                -0.007  ...       0.027
-exam_score                            0.517  ...       1.000
+study_hours_per_week                  1.000  ...       0.635
+attendance_rate                       0.367  ...       0.561
+sleep_hours                          -0.206  ...       0.009
+prior_gpa                             0.364  ...       0.527
+extracurricular_hours                -0.148  ...      -0.129
+exam_score                            0.635  ...       1.000
 
 [6 rows x 6 columns]
-  exam_score vs study_hours_per_week: r = 0.517, p = 2.639e-23
-  exam_score vs attendance_rate: r = 0.348, p = 1.593e-10
-  exam_score vs sleep_hours: r = 0.065, p = 0.2441
-  exam_score vs prior_gpa: r = 0.330, p = 1.502e-09
-  exam_score vs extracurricular_hours: r = 0.027, p = 0.6335
+
+Correlation with exam_score:
+  exam_score vs study_hours_per_week: r = 0.635, p = 1.621e-37
+  exam_score vs attendance_rate: r = 0.561, p = 6.209e-28
+  exam_score vs sleep_hours: r = 0.009, p = 0.8788
+  exam_score vs prior_gpa: r = 0.527, p = 2.626e-24
+  exam_score vs extracurricular_hours: r = -0.129, p = 0.02063
+
+The predictors are also correlated with EACH OTHER by design (a
+'conscientiousness' structure was built into the data generator), most
+notably study_hours vs attendance and study_hours vs prior_gpa. This
+intercorrelation is revisited as multicollinearity in section 6.
 
 ======================================================================
 4. SIMPLE LINEAR REGRESSION: exam_score ~ study_hours_per_week
 ======================================================================
                             OLS Regression Results                            
 ==============================================================================
-Dep. Variable:             exam_score   R-squared:                       0.268
-Model:                            OLS   Adj. R-squared:                  0.265
-Method:                 Least Squares   F-statistic:                     116.2
-Date:                Mon, 07 Sep 2026   Prob (F-statistic):           2.64e-23
-Time:                        15:12:18   Log-Likelihood:                -1152.3
-No. Observations:                 320   AIC:                             2309.
-Df Residuals:                     318   BIC:                             2316.
+Dep. Variable:             exam_score   R-squared:                       0.403
+Model:                            OLS   Adj. R-squared:                  0.401
+Method:                 Least Squares   F-statistic:                     214.8
+Date:                Mon, 07 Sep 2026   Prob (F-statistic):           1.62e-37
+Time:                        15:38:31   Log-Likelihood:                -1161.8
+No. Observations:                 320   AIC:                             2328.
+Df Residuals:                     318   BIC:                             2335.
 Df Model:                           1                                         
 Covariance Type:            nonrobust                                         
 ========================================================================================
                            coef    std err          t      P>|t|      [0.025      0.975]
 ----------------------------------------------------------------------------------------
-Intercept               55.7783      1.588     35.127      0.000      52.654      58.902
-study_hours_per_week     1.3638      0.126     10.781      0.000       1.115       1.613
+Intercept               50.0141      1.587     31.516      0.000      46.892      53.136
+study_hours_per_week     1.8484      0.126     14.656      0.000       1.600       2.097
 ==============================================================================
-Omnibus:                        2.020   Durbin-Watson:                   2.021
-Prob(Omnibus):                  0.364   Jarque-Bera (JB):                1.702
-Skew:                           0.021   Prob(JB):                        0.427
-Kurtosis:                       2.645   Cond. No.                         40.3
+Omnibus:                        0.672   Durbin-Watson:                   1.927
+Prob(Omnibus):                  0.715   Jarque-Bera (JB):                0.436
+Skew:                          -0.036   Prob(JB):                        0.804
+Kurtosis:                       3.166   Cond. No.                         39.2
 ==============================================================================
 
 Notes:
@@ -70,63 +80,102 @@ Notes:
 ======================================================================
 5. MULTIPLE LINEAR REGRESSION
 ======================================================================
+Categorical study_method is dummy-coded with 'Group study' as the
+reference level (dropped alphabetically first). Coefficients on
+'Self-study' and 'Tutoring' are each read relative to Group study.
                             OLS Regression Results                            
 ==============================================================================
-Dep. Variable:             exam_score   R-squared:                       0.479
-Model:                            OLS   Adj. R-squared:                  0.468
-Method:                 Least Squares   F-statistic:                     41.01
-Date:                Mon, 07 Sep 2026   Prob (F-statistic):           9.57e-41
-Time:                        15:12:19   Log-Likelihood:                -1097.7
-No. Observations:                 320   AIC:                             2211.
-Df Residuals:                     312   BIC:                             2242.
+Dep. Variable:             exam_score   R-squared:                       0.637
+Model:                            OLS   Adj. R-squared:                  0.629
+Method:                 Least Squares   F-statistic:                     78.32
+Date:                Mon, 07 Sep 2026   Prob (F-statistic):           5.96e-65
+Time:                        15:38:31   Log-Likelihood:                -1082.1
+No. Observations:                 320   AIC:                             2180.
+Df Residuals:                     312   BIC:                             2210.
 Df Model:                           7                                         
 Covariance Type:            nonrobust                                         
 =================================================================================================
                                     coef    std err          t      P>|t|      [0.025      0.975]
 -------------------------------------------------------------------------------------------------
-Intercept                        10.2682      5.040      2.037      0.042       0.352      20.185
-C(study_method)[T.Self-study]    -0.3266      0.975     -0.335      0.738      -2.244       1.591
-C(study_method)[T.Tutoring]       2.5443      1.314      1.936      0.054      -0.041       5.130
-study_hours_per_week              1.2578      0.109     11.567      0.000       1.044       1.472
-attendance_rate                   0.2409      0.029      8.278      0.000       0.184       0.298
-sleep_hours                       0.6597      0.372      1.774      0.077      -0.072       1.391
-prior_gpa                         7.8555      1.102      7.132      0.000       5.688      10.023
-extracurricular_hours            -0.0601      0.207     -0.290      0.772      -0.468       0.348
+Intercept                        12.7819      3.959      3.228      0.001       4.991      20.573
+C(study_method)[T.Self-study]    -1.8262      0.927     -1.970      0.050      -3.650      -0.003
+C(study_method)[T.Tutoring]       3.7320      1.151      3.242      0.001       1.467       5.997
+study_hours_per_week              1.1290      0.120      9.444      0.000       0.894       1.364
+attendance_rate                   0.2810      0.031      9.118      0.000       0.220       0.342
+sleep_hours                       0.4023      0.383      1.050      0.295      -0.352       1.157
+prior_gpa                         7.7268      1.016      7.607      0.000       5.728       9.725
+extracurricular_hours            -0.5216      0.211     -2.469      0.014      -0.937      -0.106
 ==============================================================================
-Omnibus:                        1.224   Durbin-Watson:                   2.151
-Prob(Omnibus):                  0.542   Jarque-Bera (JB):                1.048
-Skew:                           0.135   Prob(JB):                        0.592
-Kurtosis:                       3.073   Cond. No.                         983.
+Omnibus:                        2.983   Durbin-Watson:                   1.912
+Prob(Omnibus):                  0.225   Jarque-Bera (JB):                2.876
+Skew:                           0.133   Prob(JB):                        0.237
+Kurtosis:                       3.380   Cond. No.                         807.
 ==============================================================================
 
 Notes:
 [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
 
-Variance Inflation Factors:
+Fitted estimate vs. TRUE generating coefficient (recoverable only
+because this dataset is simulated; not a real-data diagnostic):
+  study_hours_per_week: estimated = 1.129, true = 1.150
+  attendance_rate: estimated = 0.281, true = 0.270
+  prior_gpa: estimated = 7.727, true = 8.500
+  extracurricular_hours: estimated = -0.522, true = -0.300
+  C(study_method)[T.Self-study]: estimated = -1.826, true = -2.400
+  C(study_method)[T.Tutoring]: estimated = 3.732, true = 1.700
+
+======================================================================
+6. MULTICOLLINEARITY — Variance Inflation Factors
+======================================================================
              variable  VIF
                 const 1.00
- study_hours_per_week 1.02
-      attendance_rate 1.01
-          sleep_hours 1.02
-            prior_gpa 1.02
-extracurricular_hours 1.02
+ study_hours_per_week 1.45
+      attendance_rate 1.23
+          sleep_hours 1.13
+            prior_gpa 1.23
+extracurricular_hours 1.06
+           Self-study 1.32
+             Tutoring 1.30
+
+All VIFs stay comfortably below the common concern threshold of 5,
+but they are now meaningfully above 1.0 (unlike an independently-drawn
+predictor set), reflecting the correlation deliberately built between
+study_hours, attendance and prior_gpa.
 
 ======================================================================
-6. TWO-SAMPLE T-TEST: attendance >= 85% vs < 85%
+7. REGRESSION DIAGNOSTICS (multiple regression residuals)
 ======================================================================
-High-attendance group: n = 126, mean = 76.13, sd = 9.48
-Low-attendance group:  n = 194, mean = 69.38, sd = 10.08
-Welch's t-test: t = 6.064, p = 4.306e-09
+Shapiro-Wilk on RESIDUALS: W = 0.9944, p = 0.2902
+-> Fails to reject residual normality (p > .05)
+Breusch-Pagan test (heteroscedasticity): LM = 3.649, p = 0.8192
+-> No evidence of heteroscedasticity (p > .05)
+Durbin-Watson (independence of residuals): 1.912 (~2 indicates little autocorrelation)
+Cook's distance: max = 0.0314, 17 of 320 points exceed the 4/n = 0.0125 rule-of-thumb threshold for influence
+
+======================================================================
+8. TWO-SAMPLE T-TEST: attendance >= 85% vs < 85%
+======================================================================
+Caveat: 85% is an arbitrary cut point chosen only to illustrate a
+two-sample test. Dichotomizing a continuous variable discards
+information and can understate or distort the relationship; the
+continuous regression coefficient on attendance_rate in section 5
+(and the Pearson correlation in section 3) is the more complete and
+statistically preferable summary of this relationship. The t-test
+below is included as a worked example of the technique, not as the
+primary evidence for an attendance effect.
+High-attendance group: n = 135, mean = 77.81, sd = 9.87
+Low-attendance group:  n = 185, mean = 67.81, sd = 11.39
+Welch's t-test: t = 8.386, p = 1.816e-15
 -> Statistically significant difference (p < .05)
-Mean difference = 6.74 points, 95% CI = [4.56, 8.92]
+Mean difference = 10.00 points, 95% CI = [7.66, 12.34]
 
 ======================================================================
-7. ONE-WAY ANOVA: exam_score by study_method
+9. ONE-WAY ANOVA: exam_score by study_method
 ======================================================================
-F-statistic = 2.279, p = 0.104
--> No statistically significant difference between groups (p >= .05)
+F-statistic = 6.216, p = 0.002249
+-> At least one group mean differs significantly (p < .05)
               count   mean    std
 study_method                     
-Group study      95  72.09  11.16
-Self-study      172  71.20  10.05
-Tutoring         53  74.66   9.66
+Group study     103  72.33  10.63
+Self-study      153  70.09  11.96
+Tutoring         64  76.18  12.44
