@@ -1,0 +1,132 @@
+======================================================================
+1. DESCRIPTIVE STATISTICS
+======================================================================
+       study_hours_per_week  attendance_rate  ...  extracurricular_hours  exam_score
+count                320.00           320.00  ...                 320.00      320.00
+mean                  11.92            78.86  ...                   4.06       72.04
+std                    3.94            14.74  ...                   2.07       10.37
+min                    1.22            27.60  ...                   0.00       43.90
+25%                    9.22            69.75  ...                   3.00       64.30
+50%                   11.78            81.55  ...                   4.00       72.95
+75%                   14.13            90.40  ...                   5.00       79.20
+max                   24.24            99.30  ...                  14.00      100.00
+
+[8 rows x 6 columns]
+
+======================================================================
+2. DISTRIBUTION OF EXAM SCORE
+======================================================================
+Shapiro-Wilk normality test: W = 0.9956, p = 0.4970
+-> Fails to reject normality (p > .05)
+Skewness: 0.016, Kurtosis (excess): -0.371
+
+======================================================================
+3. CORRELATION ANALYSIS (Pearson)
+======================================================================
+                       study_hours_per_week  ...  exam_score
+study_hours_per_week                  1.000  ...       0.517
+attendance_rate                       0.022  ...       0.348
+sleep_hours                           0.086  ...       0.065
+prior_gpa                             0.090  ...       0.330
+extracurricular_hours                -0.007  ...       0.027
+exam_score                            0.517  ...       1.000
+
+[6 rows x 6 columns]
+  exam_score vs study_hours_per_week: r = 0.517, p = 2.639e-23
+  exam_score vs attendance_rate: r = 0.348, p = 1.593e-10
+  exam_score vs sleep_hours: r = 0.065, p = 0.2441
+  exam_score vs prior_gpa: r = 0.330, p = 1.502e-09
+  exam_score vs extracurricular_hours: r = 0.027, p = 0.6335
+
+======================================================================
+4. SIMPLE LINEAR REGRESSION — exam_score ~ study_hours_per_week
+======================================================================
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:             exam_score   R-squared:                       0.268
+Model:                            OLS   Adj. R-squared:                  0.265
+Method:                 Least Squares   F-statistic:                     116.2
+Date:                Mon, 07 Sep 2026   Prob (F-statistic):           2.64e-23
+Time:                        12:54:26   Log-Likelihood:                -1152.3
+No. Observations:                 320   AIC:                             2309.
+Df Residuals:                     318   BIC:                             2316.
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+========================================================================================
+                           coef    std err          t      P>|t|      [0.025      0.975]
+----------------------------------------------------------------------------------------
+Intercept               55.7783      1.588     35.127      0.000      52.654      58.902
+study_hours_per_week     1.3638      0.126     10.781      0.000       1.115       1.613
+==============================================================================
+Omnibus:                        2.020   Durbin-Watson:                   2.021
+Prob(Omnibus):                  0.364   Jarque-Bera (JB):                1.702
+Skew:                           0.021   Prob(JB):                        0.427
+Kurtosis:                       2.645   Cond. No.                         40.3
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+======================================================================
+5. MULTIPLE LINEAR REGRESSION
+======================================================================
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:             exam_score   R-squared:                       0.479
+Model:                            OLS   Adj. R-squared:                  0.468
+Method:                 Least Squares   F-statistic:                     41.01
+Date:                Mon, 07 Sep 2026   Prob (F-statistic):           9.57e-41
+Time:                        12:54:26   Log-Likelihood:                -1097.7
+No. Observations:                 320   AIC:                             2211.
+Df Residuals:                     312   BIC:                             2242.
+Df Model:                           7                                         
+Covariance Type:            nonrobust                                         
+=================================================================================================
+                                    coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------------------
+Intercept                        10.2682      5.040      2.037      0.042       0.352      20.185
+C(study_method)[T.Self-study]    -0.3266      0.975     -0.335      0.738      -2.244       1.591
+C(study_method)[T.Tutoring]       2.5443      1.314      1.936      0.054      -0.041       5.130
+study_hours_per_week              1.2578      0.109     11.567      0.000       1.044       1.472
+attendance_rate                   0.2409      0.029      8.278      0.000       0.184       0.298
+sleep_hours                       0.6597      0.372      1.774      0.077      -0.072       1.391
+prior_gpa                         7.8555      1.102      7.132      0.000       5.688      10.023
+extracurricular_hours            -0.0601      0.207     -0.290      0.772      -0.468       0.348
+==============================================================================
+Omnibus:                        1.224   Durbin-Watson:                   2.151
+Prob(Omnibus):                  0.542   Jarque-Bera (JB):                1.048
+Skew:                           0.135   Prob(JB):                        0.592
+Kurtosis:                       3.073   Cond. No.                         983.
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+
+Variance Inflation Factors:
+             variable  VIF
+                const 1.00
+ study_hours_per_week 1.02
+      attendance_rate 1.01
+          sleep_hours 1.02
+            prior_gpa 1.02
+extracurricular_hours 1.02
+
+======================================================================
+6. TWO-SAMPLE T-TEST — attendance >= 85% vs < 85%
+======================================================================
+High-attendance group: n = 126, mean = 76.13, sd = 9.48
+Low-attendance group:  n = 194, mean = 69.38, sd = 10.08
+Welch's t-test: t = 6.064, p = 4.306e-09
+-> Statistically significant difference (p < .05)
+Mean difference = 6.74 points, 95% CI = [4.56, 8.92]
+
+======================================================================
+7. ONE-WAY ANOVA — exam_score by study_method
+======================================================================
+F-statistic = 2.279, p = 0.104
+-> No statistically significant difference between groups (p >= .05)
+              count   mean    std
+study_method                     
+Group study      95  72.09  11.16
+Self-study      172  71.20  10.05
+Tutoring         53  74.66   9.66
