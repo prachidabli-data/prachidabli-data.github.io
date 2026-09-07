@@ -124,9 +124,9 @@
 
 <header class="hero">
   <div class="wrap">
-    <span class="eyebrow">Academic Project · BSc Mathematics · Statistical Modelling</span>
+    <span class="eyebrow">Reconstructed Academic Exercise · Based on BSc Mathematics Coursework</span>
     <h1>Statistical Modelling Project I: Student Exam Performance</h1>
-    <p class="lede">A demonstration of core statistical techniques (distributions, correlation, regression and diagnostics) applied to a synthetic student dataset with known, built-in relationships, so a fitted model's estimates can be checked against the values used to generate the data.</p>
+    <p class="lede">A reproducible simulation demonstrating how correlation, regression and hypothesis testing recover known relationships from noisy synthetic data.</p>
     <div class="chips">
       <span class="chip">Python</span>
       <span class="chip">pandas / NumPy</span>
@@ -142,7 +142,7 @@
 <section style="padding:26px 0 0">
   <div class="wrap">
     <div class="card" style="padding:22px 26px">
-      <p style="margin:0;font-size:15px">This project was originally completed during my undergraduate degree. The original coursework files are no longer available, so this page presents a <strong>faithful rebuild</strong>: a new synthetic dataset generated in Python with the same realistic structure, run through the same statistical techniques, so every number, chart and table on this page comes from code you can see and re-run.</p>
+      <p style="margin:0;font-size:15px">This case study reconstructs the statistical techniques covered in an undergraduate project whose original files are no longer available. The dataset, code and results shown here were newly created for this portfolio and were not part of the original submission. The synthetic data contain predefined relationships and are used solely to demonstrate statistical analysis, not to make claims about real students.</p>
     </div>
   </div>
 </section>
@@ -153,14 +153,12 @@
     <div class="sec-label">Objective</div>
     <h2>The question</h2>
     <p>The brief behind this piece of coursework was to take a dataset and demonstrate a full statistical workflow: describe it, understand how its variables are distributed, test whether variables relate to one another, and build a model that explains an outcome, with every step supported by formal hypothesis tests rather than eyeballed patterns.</p>
-    <p>The illustrative question chosen: <strong>what predicts a student's exam score</strong>, and how well can a fitted model recover it? Because the dataset is synthetic, the true relationships used to generate it are known in advance (see the code), which turns the usual one-way question ("does this model fit?") into a two-way check: does the model recover the known signal, and are its own assumptions actually satisfied? Six variables were modelled for 320 students: weekly study hours, attendance rate, sleep hours, prior GPA, extracurricular hours, and study method (self-study, group study, or tutoring).</p>
+    <p>The central question this page asks: <strong>can standard statistical methods recover the relationships deliberately embedded in a noisy simulated dataset?</strong> Because the dataset is synthetic, the true relationships used to generate it are known in advance (see the code), which turns the usual one-way question ("does this model fit?") into a two-way check: does the model recover the known signal, and are its own assumptions actually satisfied? Six variables were modelled for 320 students: weekly study hours, attendance rate, sleep hours, prior GPA, extracurricular hours, and study method (self-study, group study, or tutoring).</p>
     <ul>
-      <li>How is exam score distributed, and how is it distributed conditional on the predictors, once a model is fitted (i.e. what do the residuals look like)?</li>
-      <li>Which variables correlate meaningfully with exam performance, and which don't, and how correlated are the predictors with <em>each other</em>?</li>
-      <li>How well does study time alone predict score, and how much better does a multi-variable model do?</li>
-      <li>Do the regression's own assumptions hold up: linearity, constant variance, independence, and reasonably well-behaved residuals, with no single observation dominating the fit?</li>
-      <li>Do students with high attendance score higher, on average, than those with low attendance, and does a two-group test agree with the continuous regression coefficient?</li>
-      <li>Does study method (self-study vs. group study vs. tutoring) make a statistically significant difference, both on its own and once the other predictors are controlled for?</li>
+      <li>Which programmed relationships are detected in this particular sample?</li>
+      <li>How closely do the estimated regression coefficients recover the known generating values?</li>
+      <li>How much variation does a single-predictor model explain compared with a multivariable model?</li>
+      <li>Can smaller programmed effects remain statistically undetected because of sampling noise?</li>
     </ul>
   </div>
 </section>
