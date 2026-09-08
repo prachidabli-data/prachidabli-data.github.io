@@ -11,7 +11,7 @@ Note on the "true" coefficients: because this dataset is synthetic, the
 exact coefficients used to generate exam_score are known (see
 01_generate_dataset.py). Several sections below compare the fitted
 regression estimates to those true values, which is only possible because
-the data is simulated — it is not something you could do with real data,
+the data is simulated: it is not something you could do with real data,
 where the "true" relationship is unknown. That comparison is used here to
 show the model recovering a known signal from noisy, correlated data,
 not to claim real-world practical significance.
@@ -194,10 +194,10 @@ for param_name, true_key in compare_rows:
     log(f"  {param_name}: estimated = {est:.3f}, true = {TRUE_COEFS[true_key]:.3f}")
 
 # ---------------------------------------------------------------------------
-# 6. MULTICOLLINEARITY (VIF) — includes the study_method dummies
+# 6. MULTICOLLINEARITY (VIF): includes the study_method dummies
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
-log("6. MULTICOLLINEARITY — Variance Inflation Factors")
+log("6. MULTICOLLINEARITY: Variance Inflation Factors")
 log("=" * 70)
 
 method_dummies = pd.get_dummies(df["study_method"], dtype=float).drop(columns=["Self-study"])
@@ -241,8 +241,12 @@ log("-> " + ("No evidence of heteroscedasticity (p > .05)" if bp_p > 0.05
              else "Evidence of heteroscedasticity (p <= .05): variance of residuals"
                   " is not constant across fitted values"))
 
-log(f"Durbin-Watson (independence of residuals): {sm.stats.stattools.durbin_watson(resid):.3f}"
-    " (~2 indicates little autocorrelation)")
+log(f"Durbin-Watson statistic: {sm.stats.stattools.durbin_watson(resid):.3f} (~2 indicates no")
+log("first-order autocorrelation). Reported for completeness, but these are unordered")
+log("cross-sectional student records with no meaningful time or sequence axis, so this")
+log("statistic is not treated as evidence of independence here. Independence instead")
+log("follows from the simulation design, in which each student record is generated")
+log("separately.")
 
 n_obs = len(df)
 cooks_threshold = 4 / n_obs
@@ -294,7 +298,7 @@ fig.savefig(f"{IMG_DIR}/05_regression_diagnostics.png", dpi=150, bbox_inches="ti
 plt.close(fig)
 
 # ---------------------------------------------------------------------------
-# 8. HYPOTHESIS TEST — two-sample t-test on attendance split
+# 8. HYPOTHESIS TEST: two-sample t-test on attendance split
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
 log("8. TWO-SAMPLE T-TEST: attendance >= 85% vs < 85%")
@@ -338,13 +342,27 @@ log(f"Mean difference = {mean_diff:.2f} points, Welch-Satterthwaite df = {welch_
     f"t* = {critical_t:.3f}, 95% CI = [{ci_low:.2f}, {ci_high:.2f}]")
 
 # ---------------------------------------------------------------------------
-# 9. ONE-WAY ANOVA — exam_score by study_method
+# 9. ONE-WAY ANOVA: exam_score by study_method
 # ---------------------------------------------------------------------------
 log("\n" + "=" * 70)
 log("9. ONE-WAY ANOVA: exam_score by study_method")
 log("=" * 70)
 
 groups = [g["exam_score"].values for _, g in df.groupby("study_method")]
+
+# The standard one-way ANOVA assumes roughly equal variances across groups;
+# check that with Levene's test (median-centered, robust to non-normality)
+# before trusting the F-test below.
+levene_stat, levene_p = stats.levene(*groups, center="median")
+log(
+    f"Levene's test: statistic = {levene_stat:.3f}, "
+    f"p = {levene_p:.4f}"
+)
+log("-> " + ("No evidence of unequal group variances (p > .05): the equal-variance "
+             "assumption behind the ANOVA below is reasonable." if levene_p > 0.05
+             else "Evidence of unequal group variances (p <= .05): a Welch ANOVA would "
+                  "be more appropriate than the standard one-way ANOVA below."))
+
 f_stat, anova_p = stats.f_oneway(*groups)
 log(f"F-statistic = {f_stat:.3f}, p = {anova_p:.4g}")
 log("-> " + ("At least one group mean differs significantly (p < .05)" if anova_p < 0.05
