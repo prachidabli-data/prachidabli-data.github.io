@@ -56,8 +56,8 @@ intercorrelation is revisited as multicollinearity in section 6.
 Dep. Variable:             exam_score   R-squared:                       0.403
 Model:                            OLS   Adj. R-squared:                  0.401
 Method:                 Least Squares   F-statistic:                     214.8
-Date:                Mon, 07 Sep 2026   Prob (F-statistic):           1.62e-37
-Time:                        15:38:31   Log-Likelihood:                -1161.8
+Date:                Tue, 08 Sep 2026   Prob (F-statistic):           1.62e-37
+Time:                        09:20:22   Log-Likelihood:                -1161.8
 No. Observations:                 320   AIC:                             2328.
 Df Residuals:                     318   BIC:                             2335.
 Df Model:                           1                                         
@@ -80,36 +80,38 @@ Notes:
 ======================================================================
 5. MULTIPLE LINEAR REGRESSION
 ======================================================================
-Categorical study_method is dummy-coded with 'Group study' as the
-reference level (dropped alphabetically first). Coefficients on
-'Self-study' and 'Tutoring' are each read relative to Group study.
+Categorical study_method is dummy-coded with 'Self-study' set explicitly
+as the reference level (statsmodels' Treatment(reference=...) contrast),
+rather than relying on whichever category sorts first alphabetically.
+Coefficients on 'Group study' and 'Tutoring' are each read relative to
+Self-study.
                             OLS Regression Results                            
 ==============================================================================
 Dep. Variable:             exam_score   R-squared:                       0.637
 Model:                            OLS   Adj. R-squared:                  0.629
 Method:                 Least Squares   F-statistic:                     78.32
-Date:                Mon, 07 Sep 2026   Prob (F-statistic):           5.96e-65
-Time:                        15:38:31   Log-Likelihood:                -1082.1
+Date:                Tue, 08 Sep 2026   Prob (F-statistic):           5.96e-65
+Time:                        09:20:23   Log-Likelihood:                -1082.1
 No. Observations:                 320   AIC:                             2180.
 Df Residuals:                     312   BIC:                             2210.
 Df Model:                           7                                         
 Covariance Type:            nonrobust                                         
-=================================================================================================
-                                    coef    std err          t      P>|t|      [0.025      0.975]
--------------------------------------------------------------------------------------------------
-Intercept                        12.7819      3.959      3.228      0.001       4.991      20.573
-C(study_method)[T.Self-study]    -1.8262      0.927     -1.970      0.050      -3.650      -0.003
-C(study_method)[T.Tutoring]       3.7320      1.151      3.242      0.001       1.467       5.997
-study_hours_per_week              1.1290      0.120      9.444      0.000       0.894       1.364
-attendance_rate                   0.2810      0.031      9.118      0.000       0.220       0.342
-sleep_hours                       0.4023      0.383      1.050      0.295      -0.352       1.157
-prior_gpa                         7.7268      1.016      7.607      0.000       5.728       9.725
-extracurricular_hours            -0.5216      0.211     -2.469      0.014      -0.937      -0.106
+=====================================================================================================================================
+                                                                        coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------------------------------------------------------------
+Intercept                                                            10.9556      3.968      2.761      0.006       3.147      18.764
+C(study_method, Treatment(reference='Self-study'))[T.Group study]     1.8262      0.927      1.970      0.050       0.003       3.650
+C(study_method, Treatment(reference='Self-study'))[T.Tutoring]        5.5583      1.077      5.159      0.000       3.438       7.678
+study_hours_per_week                                                  1.1290      0.120      9.444      0.000       0.894       1.364
+attendance_rate                                                       0.2810      0.031      9.118      0.000       0.220       0.342
+sleep_hours                                                           0.4023      0.383      1.050      0.295      -0.352       1.157
+prior_gpa                                                             7.7268      1.016      7.607      0.000       5.728       9.725
+extracurricular_hours                                                -0.5216      0.211     -2.469      0.014      -0.937      -0.106
 ==============================================================================
 Omnibus:                        2.983   Durbin-Watson:                   1.912
 Prob(Omnibus):                  0.225   Jarque-Bera (JB):                2.876
 Skew:                           0.133   Prob(JB):                        0.237
-Kurtosis:                       3.380   Cond. No.                         807.
+Kurtosis:                       3.380   Cond. No.                         809.
 ==============================================================================
 
 Notes:
@@ -121,8 +123,8 @@ because this dataset is simulated; not a real-data diagnostic):
   attendance_rate: estimated = 0.281, true = 0.270
   prior_gpa: estimated = 7.727, true = 8.500
   extracurricular_hours: estimated = -0.522, true = -0.300
-  C(study_method)[T.Self-study]: estimated = -1.826, true = -2.400
-  C(study_method)[T.Tutoring]: estimated = 3.732, true = 1.700
+  C(study_method, Treatment(reference='Self-study'))[T.Group study]: estimated = 1.826, true = 2.400
+  C(study_method, Treatment(reference='Self-study'))[T.Tutoring]: estimated = 5.558, true = 4.100
 
 ======================================================================
 6. MULTICOLLINEARITY — Variance Inflation Factors
@@ -134,8 +136,8 @@ because this dataset is simulated; not a real-data diagnostic):
           sleep_hours 1.13
             prior_gpa 1.23
 extracurricular_hours 1.06
-           Self-study 1.32
-             Tutoring 1.30
+          Group study 1.15
+             Tutoring 1.14
 
 All VIFs stay comfortably below the common concern threshold of 5,
 but they are now meaningfully above 1.0 (unlike an independently-drawn
@@ -167,7 +169,7 @@ High-attendance group: n = 135, mean = 77.81, sd = 9.87
 Low-attendance group:  n = 185, mean = 67.81, sd = 11.39
 Welch's t-test: t = 8.386, p = 1.816e-15
 -> Statistically significant difference (p < .05)
-Mean difference = 10.00 points, 95% CI = [7.66, 12.34]
+Mean difference = 10.00 points, Welch-Satterthwaite df = 308.7, t* = 1.968, 95% CI = [7.65, 12.35]
 
 ======================================================================
 9. ONE-WAY ANOVA: exam_score by study_method

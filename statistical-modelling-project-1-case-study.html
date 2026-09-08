@@ -167,11 +167,11 @@
 <section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
   <div class="wrap">
     <div class="sec-label">The Data</div>
-    <h2>A realistic synthetic dataset</h2>
-    <p>The dataset is fully <strong>synthetic</strong>, generated programmatically in Python (NumPy) with a fixed random seed so every result on this page is reproducible. It was deliberately built with realistic statistical structure rather than a perfect textbook relationship:</p>
+    <h2>A controlled synthetic dataset</h2>
+    <p>The dataset is fully <strong>synthetic</strong>, generated programmatically in Python (NumPy) with a fixed random seed so every result on this page is reproducible. Calling it "realistic" would overstate the case: it is a controlled construction, built to exercise specific statistical techniques, not a validated model of how real students actually behave.</p>
     <ul>
-      <li>Exam score is generated as a <strong>weighted combination</strong> of the predictors below plus random noise, so relationships exist, but are realistically noisy rather than deterministic.</li>
-      <li>The five numeric predictors are <strong>not generated independently</strong>: a "conscientiousness" correlation structure is imposed via a Gaussian copula, so students who study more also tend to attend more and have a higher prior GPA, exactly as real study habits, attendance and attainment would move together. This is what gives the multicollinearity (VIF) check in Step 4 something real to measure.</li>
+      <li>Exam score is generated as a <strong>weighted combination</strong> of the predictors below plus random noise, so relationships exist, but are realistically noisy rather than deterministic. The exact weights are listed in the table below.</li>
+      <li>The five numeric predictors are <strong>correlated with each other by construction</strong>: a "conscientiousness" structure is imposed via a Gaussian copula (target correlations of roughly 0.25&ndash;0.35 between study hours, attendance and prior GPA), giving the multicollinearity (VIF) check in Step 4 something non-trivial to measure. The resulting VIFs (1.06&ndash;1.45) are a designed property of this simulation, chosen for illustration, and should not be read as an empirical estimate of how correlated these variables are in real educational data.</li>
       <li>A <strong>sleep penalty</strong> kicks in only below 6 hours a night, giving a mild non-linear effect to investigate.</li>
       <li>Study method groups are <strong>unevenly sized</strong> (self-study is most common, tutoring least), as they would be in a real cohort.</li>
       <li>Sleep hours is included specifically because it turns out to <strong>not</strong> matter much once the other predictors are in the model: a deliberate check against assuming every variable is significant.</li>
@@ -180,7 +180,7 @@
       <thead><tr><th>Column</th><th>Description</th><th>Type</th></tr></thead>
       <tbody>
         <tr><td>student_id</td><td>Unique synthetic student identifier</td><td>N/A</td></tr>
-        <tr><td>study_hours_per_week</td><td>Self-reported weekly study hours</td><td>Continuous</td></tr>
+        <tr><td>study_hours_per_week</td><td>Simulated weekly study hours</td><td>Continuous</td></tr>
         <tr><td>attendance_rate</td><td>Lecture/seminar attendance, %</td><td>Continuous</td></tr>
         <tr><td>sleep_hours</td><td>Average nightly sleep, hours</td><td>Continuous</td></tr>
         <tr><td>prior_gpa</td><td>Prior GPA on a 0–4 scale</td><td>Continuous</td></tr>
@@ -189,6 +189,23 @@
         <tr><td>exam_score</td><td>Final exam score, 0–100</td><td>Continuous (outcome)</td></tr>
       </tbody>
     </table>
+
+    <h4 style="margin:24px 0 6px;color:var(--navy-700);font-size:16px">The data-generating process</h4>
+    <p>Exam score is built directly from the table below: a fixed baseline plus each of these programmed effects plus random noise, then clipped to 0&ndash;100. Reproducing the exact numbers is straightforward from <code>01_generate_dataset.py</code>.</p>
+    <table class="data">
+      <thead><tr><th>Component</th><th>Programmed effect on exam score</th></tr></thead>
+      <tbody>
+        <tr><td>Study hours</td><td>+1.15 per hour</td></tr>
+        <tr><td>Attendance</td><td>+0.27 per percentage point</td></tr>
+        <tr><td>Prior GPA</td><td>+8.50 per GPA point</td></tr>
+        <tr><td>Extracurricular hours</td><td>&minus;0.30 per hour</td></tr>
+        <tr><td>Group study</td><td>+2.40 relative to self-study</td></tr>
+        <tr><td>Tutoring</td><td>+4.10 relative to self-study</td></tr>
+        <tr><td>Short-sleep deficit</td><td>&minus;1.80 per hour below six</td></tr>
+        <tr><td>Random noise</td><td>SD = 7.50</td></tr>
+      </tbody>
+    </table>
+    <p>These are <strong>assumed values chosen for demonstration</strong>. They are not estimates obtained from educational research, and no claim is made that real study hours, attendance or GPA affect exam performance by these amounts. The table above expresses the two study-method effects relative to <strong>Self-study</strong>, which is also the reference category the regression in Step 4 uses (deliberately set, rather than left to alphabetical default), so the "true" values quoted there for comparison (+2.40 for Group study, +4.10 for Tutoring) are exactly the two numbers above.</p>
     <div class="dash-actions">
       <a class="btn btn-primary" href="statistical-modelling-project-1/data/student_exam_performance.csv" download>Download the dataset (.csv) &darr;</a>
       <a class="btn btn-ghost" href="statistical-modelling-project-1/code/01_generate_dataset.py" download>Dataset generator (.py) &darr;</a>
@@ -205,7 +222,7 @@
 
     <h3>Step 1: Descriptive statistics &amp; distribution</h3>
     <p>Before modelling anything, the outcome variable's own shape is worth describing: is it skewed, are there outliers, roughly what range does it cover? Exam scores were plotted and tested for normality with a <strong>Shapiro-Wilk test</strong>, purely as description.</p>
-    <p>This is descriptive context, not an assumption check for the regression later in this page. OLS does not require the raw outcome to be normally distributed; its inference (the t- and F-tests used throughout) rests on the model's <strong>residuals</strong> being reasonably linear, homoscedastic (constant variance), independent, and approximately normal: a property of <code>y &minus; ŷ</code>, not of <code>y</code> on its own. Those residual diagnostics are run after the multiple regression is fitted, in Step 5.</p>
+    <p>This is descriptive context, examined before any model is fitted. OLS regression does not require the outcome itself to be normally distributed: its conventional inferential assumptions concern linearity, independence, constant error variance, and the approximate distribution of the model's <strong>residuals</strong> (a property of <code>y &minus; ŷ</code>, not of <code>y</code> on its own). Welch's t-test, used later in this page, concerns the distributions within the two compared groups rather than the whole sample, and is relatively robust to non-normality at a sample size like this one (n = 320). The regression's own residual diagnostics are run after the multiple regression is fitted, in Step 5.</p>
     <p class="demo-note">Demonstrates: descriptive statistics, distribution visualisation, and correctly scoping what a normality test does (and doesn't) tell you.</p>
   </div>
 </section>
@@ -221,7 +238,7 @@
       <div class="stat"><div class="n">p = 0.417</div><div class="l">Shapiro-Wilk p-value <span class="sig sig-no">Fails to reject normality</span></div></div>
       <div class="stat"><div class="n">&minus;0.12</div><div class="l">Skewness (near-symmetric)</div></div>
     </div>
-    <p class="fig-cap">With p = 0.417 (&gt; .05), the Shapiro-Wilk test does not reject normality of the raw exam scores, and skewness is close to zero. That's a useful descriptive fact about this cohort, but it is incidental here: it is the regression residuals, checked in Step 5, that actually need to satisfy OLS's assumptions.</p>
+    <p class="fig-cap">With p = 0.417 (&gt; .05), the Shapiro-Wilk test does not reject normality of the raw exam scores. The result indicates that the simulated outcome is approximately symmetric, but this test alone does not establish all the assumptions required for regression or group comparisons; those are checked directly against the regression's own residuals in Step 5.</p>
   </div>
 </section>
 
@@ -283,18 +300,19 @@
 <section style="padding-top:0">
   <div class="wrap">
     <h3>Step 4: Multiple linear regression</h3>
-    <p>All five numeric predictors plus study method (as a categorical dummy) were entered into a multiple OLS regression, to see how much of exam score they jointly explain and which stay significant once the others are controlled for. <code>study_method</code> is dummy-coded with <strong>"Group study" as the reference category</strong> (dropped alphabetically first by patsy), so the two reported dummy coefficients are each read as a difference <em>from Group study</em>, not from zero.</p>
+    <p>All five numeric predictors plus study method (as a categorical dummy) were entered into a multiple OLS regression, to see how much of exam score they jointly explain and which stay significant once the others are controlled for. <code>study_method</code> is dummy-coded with <strong>"Self-study" deliberately set as the reference category</strong>, via statsmodels' <code>Treatment(reference=...)</code> contrast, rather than left to whichever category happens to sort first alphabetically. The two reported dummy coefficients are each read as a difference <em>from Self-study</em>.</p>
     <pre><code>model = smf.ols(
     "exam_score ~ study_hours_per_week + attendance_rate + sleep_hours "
-    "+ prior_gpa + extracurricular_hours + C(study_method)",
+    "+ prior_gpa + extracurricular_hours "
+    "+ C(study_method, Treatment(reference='Self-study'))",
     data=df,
 ).fit()</code></pre>
     <table class="data">
       <thead><tr><th>Predictor</th><th>Coefficient</th><th>p-value</th></tr></thead>
       <tbody>
-        <tr><td>Intercept (Group study, all numeric predictors = 0)</td><td>12.78</td><td>0.001</td></tr>
-        <tr><td>study_method [Self-study] vs. Group study</td><td>&minus;1.83</td><td>0.050</td></tr>
-        <tr><td>study_method [Tutoring] vs. Group study</td><td>+3.73</td><td>0.001</td></tr>
+        <tr><td>Intercept (Self-study, all numeric predictors = 0)</td><td>10.96</td><td>0.006</td></tr>
+        <tr><td>study_method [Group study] vs. Self-study</td><td>+1.83</td><td>0.050</td></tr>
+        <tr><td>study_method [Tutoring] vs. Self-study</td><td>+5.56</td><td>&lt; .001</td></tr>
         <tr><td>study_hours_per_week</td><td>+1.13</td><td>&lt; .001</td></tr>
         <tr><td>attendance_rate</td><td>+0.28</td><td>&lt; .001</td></tr>
         <tr><td>prior_gpa</td><td>+7.73</td><td>&lt; .001</td></tr>
@@ -302,7 +320,12 @@
         <tr><td>sleep_hours</td><td>+0.40</td><td>0.295</td></tr>
       </tbody>
     </table>
-    <p>Together the predictors explain much more of the variation: <strong>R² = 0.637</strong> (adjusted R² = 0.629), up from 0.403 with study hours alone. Study hours, attendance, prior GPA, and extracurricular hours are all significant with the others held constant; sleep stays non-significant. Self-study scores significantly lower than Group study (p = 0.050, right at the conventional cutoff), and Tutoring significantly higher (p = 0.001).</p>
+    <p>Together the predictors explain much more of the variation: <strong>R² = 0.637</strong> (adjusted R² = 0.629), up from 0.403 with study hours alone. Study hours, attendance, prior GPA, and extracurricular hours are all significant with the others held constant. Group study scores significantly higher than Self-study (p = 0.050, right at the conventional cutoff), and Tutoring higher still (p &lt; .001). Sleep does not reach significance (p = 0.295): see the note on that below, since it is a more interesting result than it first looks.</p>
+
+    <div class="card" style="margin:20px 0;background:var(--cream-2);border-color:var(--line)">
+      <h4 style="margin:0 0 10px;color:var(--navy-700);font-size:16px">A non-significant result is not proof of no effect</h4>
+      <p style="margin:0;font-size:14.5px">sleep_hours is a useful counter-example to keep in mind whenever a test comes back non-significant. It has a real, deliberately programmed effect on exam score: a &minus;1.80 point penalty for every hour of sleep below six (see the data-generating table above). Yet its estimated coefficient in this model, +0.40, is nowhere near significant (p = 0.295). Failing to reject H&#8320; here does not show the programmed sleep effect is zero. It shows that this particular effect, a threshold that only bites below six hours, combined with sampling noise and the mismatch between a piecewise effect and a single linear term, can go undetected in a sample of this size. Whenever a test in this analysis does come back non-significant, the honest reading is "not detected here," not "definitely zero."</p>
+    </div>
 
     <div class="card" style="margin:20px 0">
       <h4 style="margin:0 0 10px;color:var(--navy-700);font-size:16px">Sanity check: does the model recover the known generating coefficients?</h4>
@@ -314,11 +337,11 @@
           <tr><td>attendance_rate</td><td>0.28</td><td>0.27</td></tr>
           <tr><td>prior_gpa</td><td>7.73</td><td>8.50</td></tr>
           <tr><td>extracurricular_hours</td><td>&minus;0.52</td><td>&minus;0.30</td></tr>
-          <tr><td>Self-study vs. Group study</td><td>&minus;1.83</td><td>&minus;2.40</td></tr>
-          <tr><td>Tutoring vs. Group study</td><td>+3.73</td><td>+1.70</td></tr>
+          <tr><td>Group study vs. Self-study</td><td>+1.83</td><td>+2.40</td></tr>
+          <tr><td>Tutoring vs. Self-study</td><td>+5.56</td><td>+4.10</td></tr>
         </tbody>
       </table>
-      <p style="margin:10px 0 0;font-size:14.5px">Most estimates land close to the true value given sampling noise and the moderate correlation between predictors. The two biggest gaps are extracurricular_hours (estimated effect nearly twice the true size) and the Tutoring contrast (estimated more than double the true size, off in a way that would matter if this were a real effect): both come from the smallest, noisiest slices of the data (few weekly extracurricular hours vary the score much; Tutoring is the smallest group at 64 students), a reminder that even a correctly-specified model can recover a noisy estimate for an effect it wasn't given much data to pin down.</p>
+      <p style="margin:10px 0 0;font-size:14.5px">study_hours_per_week, attendance_rate and prior_gpa all land within about 10% of their true value. The three predictors with larger relative gaps are Group study vs. Self-study (estimated about 24% below true), Tutoring vs. Self-study (estimated about 36% above true), and extracurricular_hours (estimated about 74% above true in magnitude). All three come from the smaller or lower-variance slices of the data: Tutoring is the smallest study-method group at 64 students, Group study the next smallest at 103, and extracurricular_hours only varies over a narrow range of a few hours a week. A reminder that even a correctly-specified model recovers noisier estimates for effects it has less information to pin down.</p>
     </div>
 
     <h4 style="margin:24px 0 6px;color:var(--navy-700);font-size:16px">Multicollinearity check (VIF)</h4>
@@ -329,8 +352,8 @@
         <tr><td>study_hours_per_week</td><td>1.45</td></tr>
         <tr><td>attendance_rate</td><td>1.23</td></tr>
         <tr><td>prior_gpa</td><td>1.23</td></tr>
-        <tr><td>Self-study</td><td>1.32</td></tr>
-        <tr><td>Tutoring</td><td>1.30</td></tr>
+        <tr><td>Group study</td><td>1.15</td></tr>
+        <tr><td>Tutoring</td><td>1.14</td></tr>
         <tr><td>sleep_hours</td><td>1.13</td></tr>
         <tr><td>extracurricular_hours</td><td>1.06</td></tr>
       </tbody>
@@ -378,9 +401,9 @@
         <div class="stat"><div class="n">t = 8.39</div><div class="l">Welch's t-statistic</div></div>
         <div class="stat"><div class="n">p &lt; .001</div><div class="l">Two-tailed p-value <span class="sig sig-yes">Reject H₀</span></div></div>
         <div class="stat"><div class="n">+10.00</div><div class="l">Mean point difference</div></div>
-        <div class="stat"><div class="n">[7.66, 12.34]</div><div class="l">95% confidence interval for the difference</div></div>
+        <div class="stat"><div class="n">[7.65, 12.35]</div><div class="l">95% CI (Welch&ndash;Satterthwaite df = 308.7)</div></div>
       </div>
-      <p>The gap is statistically significant, and of a size (about 0.85 standard deviations of exam score in this dataset) that a two-group summary won't hide. But it is also inflated relative to the "true" per-point attendance effect built into the simulation, precisely because attendance is correlated with study hours and prior GPA: the dichotomised comparison is partly picking up those other predictors too, which the continuous regression coefficient in Step 4 separates out.</p>
+      <p>In this simulated sample, the high-attendance group had a statistically significant mean difference of 10.00 points. Because attendance was programmed to affect the outcome, this demonstrates <strong>detection of the simulated relationship</strong>, not evidence about real students. The gap is also inflated relative to the per-point attendance effect actually built into the simulation, precisely because attendance is correlated with study hours and prior GPA: the dichotomised comparison partly picks up those other predictors too, which the continuous regression coefficient in Step 4 separates out. The confidence interval above uses the Welch&ndash;Satterthwaite degrees of freedom (matching what Welch's t-test itself assumes) rather than a normal-approximation critical value; at this sample size the difference is negligible (t* = 1.968 vs. 1.96), but the correct formula is used throughout.</p>
     </div>
 
     <div class="bq">
@@ -390,7 +413,7 @@
         <div class="stat"><div class="n">F = 6.22</div><div class="l">One-way ANOVA F-statistic</div></div>
         <div class="stat"><div class="n">p = 0.0022</div><div class="l">p-value <span class="sig sig-yes">Reject H₀</span></div></div>
       </div>
-      <p>Unlike the earlier draft of this analysis (run on independently-generated predictors), this ANOVA <strong>is</strong> statistically significant: study method is associated with a real difference in mean exam score in this dataset. That agrees with the multiple regression in Step 4, which (holding study hours, attendance, GPA, sleep and extracurricular load constant) found Tutoring scoring significantly higher than Group study (p = 0.001) and Self-study scoring significantly lower (p = 0.050). The ANOVA here is unadjusted for those other predictors, so it doesn't by itself say <em>why</em> the groups differ, only that they do; the regression's dummy coefficients are the adjusted version of the same comparison. Neither test was followed by a formal post-hoc procedure (e.g. Tukey's HSD) to pin down exactly which pair of groups drives the omnibus result: a natural next step, not done here.</p>
+      <p>This ANOVA is statistically significant: study method is associated with a real difference in mean exam score in this dataset. That agrees with the multiple regression in Step 4, which (holding study hours, attendance, GPA, sleep and extracurricular load constant) found Group study scoring significantly higher than Self-study (p = 0.050) and Tutoring scoring higher still (p &lt; .001). The ANOVA here is unadjusted for those other predictors, so it doesn't by itself say <em>why</em> the groups differ, only that they do; the regression's dummy coefficients are the adjusted version of the same comparison. Neither test was followed by a formal post-hoc procedure (e.g. Tukey's HSD) to pin down exactly which pair of groups drives the omnibus result: a natural next step, not done here.</p>
     </div>
 
     <div class="fig">
@@ -411,8 +434,9 @@
       <li>A <strong>simple regression</strong> on study hours alone explains ~40% of score variation; a <strong>multiple regression</strong> with all predictors reaches R² = 0.637 (adjusted 0.629), and its estimates land close to the true coefficients used to generate the data: a sanity check only possible because this dataset is synthetic.</li>
       <li>The multiple regression's <strong>residual diagnostics</strong> (Shapiro-Wilk on residuals p = 0.290, Breusch-Pagan p = 0.819, Durbin-Watson = 1.91, max Cook's distance 0.031) show no serious violation of OLS's assumptions and no single student dominating the fit.</li>
       <li>Multicollinearity is present but modest: all <strong>VIFs sit between 1.06 and 1.45</strong>, well under the usual concern threshold of 5.</li>
-      <li>Students attending ≥85% of sessions score <strong>~10 points higher on average</strong> (Welch's t-test, p &lt; .001), but that threshold is arbitrary, and the continuous attendance coefficient from the regression (+0.28 per percentage point) is the more defensible summary.</li>
-      <li><strong>Study method shows a statistically significant effect</strong> (one-way ANOVA, p = 0.0022), consistent with the multiple regression's finding that Tutoring scores significantly higher, and Self-study significantly lower, than Group study once the other predictors are controlled for.</li>
+      <li>Students attending ≥85% of sessions score <strong>~10 points higher on average</strong> (Welch's t-test, p &lt; .001, 95% CI [7.65, 12.35]), but that threshold is arbitrary; this demonstrates detection of the programmed attendance relationship in this simulation, not evidence about real students, and the continuous attendance coefficient from the regression (+0.28 per percentage point) is the more defensible summary.</li>
+      <li><strong>Study method shows a statistically significant effect</strong> (one-way ANOVA, p = 0.0022), consistent with the multiple regression's finding that Group study and Tutoring both score significantly higher than Self-study (p = 0.050 and p &lt; .001) once the other predictors are controlled for.</li>
+      <li><strong>sleep_hours</strong> is the reminder to keep the other bullets honest: it has a real, programmed effect on exam score, but its regression coefficient is nowhere near significant (p = 0.295). A non-significant result here means "not detected in this sample," not "no effect."</li>
     </ul>
     <p>The overall workflow (distribution check, correlation screening, simple then multiple regression with a ground-truth check, residual diagnostics, and formal hypothesis testing) is the same structure used in every later analytics project in this portfolio, just applied here to its purest, most mathematical form. Because the data is synthetic, it also carries the unusual luxury of being able to check the model's answers against the ones built into the simulation.</p>
   </div>

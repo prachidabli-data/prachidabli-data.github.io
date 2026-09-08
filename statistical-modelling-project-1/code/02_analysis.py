@@ -41,15 +41,18 @@ IMG_DIR = "statistical-modelling-project-1/images"
 RESULTS_PATH = "statistical-modelling-project-1/results_summary.txt"
 
 # True generating coefficients, duplicated from 01_generate_dataset.py so this
-# script can be read and re-run independently.
+# script can be read and re-run independently. study_method effects are
+# relative to Self-study, matching the generator's own internal baseline
+# (method_effect = 0 for Self-study) and the regression's reference category
+# below, so no rebasing is needed to compare the two.
 TRUE_COEFS = {
     "intercept": 12.0,
     "study_hours_per_week": 1.15,
     "attendance_rate": 0.27,
     "prior_gpa": 8.5,
     "extracurricular_hours": -0.30,
-    "study_method_self_study_vs_group": -2.4,
-    "study_method_tutoring_vs_group": 1.7,
+    "study_method_group_vs_self": 2.4,
+    "study_method_tutoring_vs_self": 4.1,
 }
 
 df = pd.read_csv(DATA_PATH)
@@ -160,13 +163,16 @@ plt.close(fig)
 log("\n" + "=" * 70)
 log("5. MULTIPLE LINEAR REGRESSION")
 log("=" * 70)
-log("Categorical study_method is dummy-coded with 'Group study' as the")
-log("reference level (dropped alphabetically first). Coefficients on")
-log("'Self-study' and 'Tutoring' are each read relative to Group study.")
+log("Categorical study_method is dummy-coded with 'Self-study' set explicitly")
+log("as the reference level (statsmodels' Treatment(reference=...) contrast),")
+log("rather than relying on whichever category sorts first alphabetically.")
+log("Coefficients on 'Group study' and 'Tutoring' are each read relative to")
+log("Self-study.")
 
 multi_model = smf.ols(
     "exam_score ~ study_hours_per_week + attendance_rate + sleep_hours "
-    "+ prior_gpa + extracurricular_hours + C(study_method)",
+    "+ prior_gpa + extracurricular_hours "
+    "+ C(study_method, Treatment(reference='Self-study'))",
     data=df,
 ).fit()
 log(multi_model.summary())
@@ -178,8 +184,10 @@ compare_rows = [
     ("attendance_rate", "attendance_rate"),
     ("prior_gpa", "prior_gpa"),
     ("extracurricular_hours", "extracurricular_hours"),
-    ("C(study_method)[T.Self-study]", "study_method_self_study_vs_group"),
-    ("C(study_method)[T.Tutoring]", "study_method_tutoring_vs_group"),
+    ("C(study_method, Treatment(reference='Self-study'))[T.Group study]",
+     "study_method_group_vs_self"),
+    ("C(study_method, Treatment(reference='Self-study'))[T.Tutoring]",
+     "study_method_tutoring_vs_self"),
 ]
 for param_name, true_key in compare_rows:
     est = multi_model.params[param_name]
@@ -192,7 +200,7 @@ log("\n" + "=" * 70)
 log("6. MULTICOLLINEARITY — Variance Inflation Factors")
 log("=" * 70)
 
-method_dummies = pd.get_dummies(df["study_method"], drop_first=True, dtype=float)
+method_dummies = pd.get_dummies(df["study_method"], dtype=float).drop(columns=["Self-study"])
 X_vif = pd.concat([
     df[["study_hours_per_week", "attendance_rate", "sleep_hours",
         "prior_gpa", "extracurricular_hours"]],
@@ -313,9 +321,21 @@ log("-> " + ("Statistically significant difference (p < .05)" if t_p < 0.05
              else "No statistically significant difference (p >= .05)"))
 
 mean_diff = high_att.mean() - low_att.mean()
-se_diff = np.sqrt(high_att.var(ddof=1) / len(high_att) + low_att.var(ddof=1) / len(low_att))
-ci_low, ci_high = mean_diff - 1.96 * se_diff, mean_diff + 1.96 * se_diff
-log(f"Mean difference = {mean_diff:.2f} points, 95% CI = [{ci_low:.2f}, {ci_high:.2f}]")
+var_high = high_att.var(ddof=1)
+var_low = low_att.var(ddof=1)
+n_high, n_low = len(high_att), len(low_att)
+se_diff = np.sqrt(var_high / n_high + var_low / n_low)
+
+# Welch-Satterthwaite degrees of freedom for the CI, matching the df Welch's
+# t-test itself uses, rather than approximating with a normal (z = 1.96)
+# critical value.
+welch_df = (var_high / n_high + var_low / n_low) ** 2 / (
+    (var_high / n_high) ** 2 / (n_high - 1) + (var_low / n_low) ** 2 / (n_low - 1)
+)
+critical_t = stats.t.ppf(0.975, df=welch_df)
+ci_low, ci_high = mean_diff - critical_t * se_diff, mean_diff + critical_t * se_diff
+log(f"Mean difference = {mean_diff:.2f} points, Welch-Satterthwaite df = {welch_df:.1f}, "
+    f"t* = {critical_t:.3f}, 95% CI = [{ci_low:.2f}, {ci_high:.2f}]")
 
 # ---------------------------------------------------------------------------
 # 9. ONE-WAY ANOVA — exam_score by study_method
