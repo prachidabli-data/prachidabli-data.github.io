@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Projects | Prachi Dabli</title>
+<meta name="description" content="The live, published projects from Prachi Dabli's portfolio: freelance analytics work, an MSc decision-analytics build, and a statistical modelling case study, each with a full write-up.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Hanken+Grotesk:ital,wght@0,300..800;1,400..600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#0B1626;
+    --navy-800:#0F1E33;
+    --navy-700:#16294A;
+    --navy-600:#23406B;
+    --navy-500:#33547F;
+    --cream:#FAF6EE;
+    --cream-2:#F2ECDE;
+    --cream-3:#E8E0CC;
+    --amber:#E0A030;
+    --amber-bright:#F4B63F;
+    --amber-dark:#BD831C;
+    --ink:#15203A;
+    --ink-soft:#43506B;
+    --ink-mute:#717C95;
+    --line:rgba(21,32,58,.12);
+    --line-strong:rgba(21,32,58,.22);
+    --shadow:0 1px 2px rgba(11,22,38,.04),0 8px 30px rgba(11,22,38,.08);
+    --shadow-lg:0 20px 60px rgba(11,22,38,.16);
+    --maxw:1120px;
+    --r:14px;
+    --r-lg:22px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:84px}
+  body{
+    font-family:'Hanken Grotesk',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    line-height:1.6;
+    font-size:17px;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  body.no-scroll{overflow:hidden}
+
+  h1,h2,h3,h4,.display{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;line-height:1.05;letter-spacing:-.02em}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--amber);color:var(--navy-900)}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+  /* ---------- SCROLL PROGRESS ---------- */
+  .progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:200;
+    background:linear-gradient(90deg,var(--amber),var(--amber-bright));box-shadow:0 0 10px rgba(224,160,48,.6)}
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    background:rgba(250,246,238,.82);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+    transition:box-shadow .3s;
+  }
+  header.nav.scrolled{box-shadow:0 6px 24px rgba(11,22,38,.07)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;letter-spacing:-.02em}
+  .brand .mark{
+    width:34px;height:34px;border-radius:9px;flex:none;
+    background:linear-gradient(135deg,var(--navy-700),var(--navy-600));
+    color:var(--amber-bright);display:grid;place-items:center;
+    font-size:15px;font-weight:700;box-shadow:var(--shadow);transition:transform .3s;
+  }
+  .brand:hover .mark{transform:rotate(-8deg) scale(1.06)}
+  .nav-links{display:flex;align-items:center;gap:4px}
+  .nav-links a{
+    font-size:14.5px;font-weight:500;color:var(--ink-soft);
+    padding:9px 14px;border-radius:9px;transition:.18s;position:relative;
+  }
+  .nav-links a:not(.nav-cta)::after{content:"";position:absolute;left:14px;right:14px;bottom:5px;height:2px;background:var(--amber);transform:scaleX(0);transform-origin:left;transition:transform .25s;border-radius:2px}
+  .nav-links a:not(.nav-cta):hover{color:var(--navy-700)}
+  .nav-links a:not(.nav-cta):hover::after{transform:scaleX(1)}
+  .nav-cta{
+    background:var(--navy-700)!important;color:var(--cream)!important;
+    font-weight:600!important;padding:9px 18px!important;
+  }
+  .nav-cta:hover{background:var(--navy-900)!important;transform:translateY(-1px)}
+  .burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px}
+  .burger span{width:24px;height:2px;background:var(--navy-800);border-radius:2px;transition:.25s}
+  .burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .burger.open span:nth-child(2){opacity:0}
+  .burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+  /* ---------- PAGE HEADER ---------- */
+  .page-header{position:relative;padding:150px 0 60px;overflow:hidden;
+    background:radial-gradient(60% 90% at 85% 0%,rgba(224,160,48,.10),transparent 60%),
+      radial-gradient(50% 70% at 0% 10%,rgba(35,84,127,.08),transparent 60%);}
+  .back-link{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:600;color:var(--ink-soft);margin-bottom:22px}
+  .back-link:hover{color:var(--navy-700)}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;
+    letter-spacing:.12em;text-transform:uppercase;color:#1a8a4d;
+    background:rgba(34,160,90,.1);border:1px solid rgba(34,160,90,.3);
+    padding:7px 15px;border-radius:50px;margin-bottom:26px;
+  }
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:#1fae5f;box-shadow:0 0 0 0 rgba(31,174,95,.5);animation:pulse-g 2.4s infinite}
+  .page-header h1{font-size:clamp(2.4rem,5.4vw,3.6rem);color:var(--navy-800);margin-bottom:16px;max-width:16ch}
+  .page-header p{font-size:18px;color:var(--ink-soft);max-width:640px}
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:0 0 84px;position:relative}
+
+  /* ---------- PROJECTS ---------- */
+  .proj-cat{margin-bottom:50px}
+  .proj-cat:last-child{margin-bottom:0}
+  .cat-head{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+  .cat-head .cbadge{font-size:22px;width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--amber),var(--amber-dark));display:grid;place-items:center;flex:none;box-shadow:var(--shadow)}
+  .cat-head .ch-t{font-family:'Bricolage Grotesque';font-weight:600;font-size:1.4rem;color:var(--navy-800);line-height:1.15}
+  .cat-head .ch-s{font-size:14px;color:var(--ink-mute)}
+  .cat-head .count{margin-left:auto;font-size:13px;font-weight:700;color:var(--amber-dark);background:rgba(224,160,48,.13);padding:6px 14px;border-radius:50px;border:1px solid rgba(224,160,48,.26);white-space:nowrap}
+
+  .proj-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+  .pcard{
+    background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);
+    padding:26px;box-shadow:var(--shadow);transition:.25s;position:relative;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .pcard::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--amber),var(--amber-dark));transform:scaleX(0);transform-origin:left;transition:transform .3s}
+  .pcard:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:rgba(224,160,48,.4)}
+  .pcard:hover::before{transform:scaleX(1)}
+  .pcard .ptop{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}
+  .pcard .picon{width:42px;height:42px;border-radius:10px;background:rgba(35,64,107,.08);color:var(--navy-700);display:grid;place-items:center;font-size:19px;transition:.3s}
+  .pcard:hover .picon{transform:scale(1.08) rotate(-5deg)}
+  .pcard .pstatus{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:5px 11px;border-radius:50px}
+  .st-live{background:rgba(34,160,90,.13);color:#1a8a4d;border:1px solid rgba(34,160,90,.28)}
+  .st-live .ld{display:inline-block;width:7px;height:7px;border-radius:50%;background:#1fae5f;margin-right:5px;animation:pulse-g 2s infinite}
+  @keyframes pulse-g{0%{box-shadow:0 0 0 0 rgba(31,174,95,.5)}70%{box-shadow:0 0 0 6px rgba(31,174,95,0)}100%{box-shadow:0 0 0 0 rgba(31,174,95,0)}}
+  .pcard h4{font-size:19px;color:var(--navy-800);margin-bottom:9px;line-height:1.2}
+  .pcard p{font-size:14.5px;color:var(--ink-soft);margin-bottom:18px;flex:1}
+  .pcard .pstack{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .pcard .pstack span{font-size:12px;font-weight:600;padding:4px 9px;border-radius:6px;background:var(--cream-2);color:var(--ink-soft)}
+  .pcard .plink{font-size:14px;font-weight:600;color:var(--amber-dark);display:inline-flex;align-items:center;gap:7px;margin-top:auto}
+  .pcard .plink .arr{transition:transform .2s}
+  .pcard:hover .plink .arr{transform:translateX(4px)}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:15.5px;
+    padding:14px 26px;border-radius:11px;transition:.2s;cursor:pointer;border:0;font-family:inherit;
+  }
+  .btn-primary{background:var(--navy-700);color:var(--cream);box-shadow:var(--shadow)}
+  .btn-primary:hover{background:var(--navy-900);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .btn .arr{transition:transform .2s}
+  .btn:hover .arr{transform:translateX(3px)}
+
+  /* ---------- FOOTER ---------- */
+  footer{background:var(--navy-900);color:rgba(250,246,238,.6);padding:38px 0;text-align:center;font-size:14px}
+  footer .brand{justify-content:center;margin-bottom:14px;color:#fff}
+  footer a{color:var(--amber-bright)}
+
+  /* ---------- BACK TO TOP ---------- */
+  .totop{position:fixed;bottom:26px;right:26px;width:48px;height:48px;border-radius:50%;
+    background:var(--navy-700);color:var(--amber-bright);border:0;cursor:pointer;font-size:20px;
+    display:grid;place-items:center;box-shadow:var(--shadow-lg);opacity:0;transform:translateY(20px) scale(.8);
+    transition:.3s;z-index:90;pointer-events:none}
+  .totop.show{opacity:1;transform:none;pointer-events:auto}
+  .totop:hover{background:var(--amber);color:var(--navy-900);transform:translateY(-3px)}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+  }
+
+  @media(max-width:900px){
+    .nav-links{
+      position:fixed;top:68px;left:0;right:0;flex-direction:column;align-items:stretch;
+      background:var(--cream);border-bottom:1px solid var(--line);padding:14px 20px 22px;
+      gap:4px;transform:translateY(-130%);transition:transform .32s cubic-bezier(.2,.7,.2,1);
+      box-shadow:0 20px 40px rgba(11,22,38,.12);max-height:calc(100vh - 68px);overflow-y:auto;
+    }
+    .nav-links.open{transform:translateY(0)}
+    .nav-links a{padding:13px 16px;font-size:16px}
+    .nav-links a:not(.nav-cta)::after{display:none}
+    .burger{display:flex}
+  }
+  @media(max-width:560px){
+    body{font-size:16px}
+    .wrap{padding:0 20px}
+    .page-header{padding:120px 0 44px}
+    section{padding:0 0 62px}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a href="index.html#top" class="brand">
+      <span class="mark">PD</span>
+      <span>Prachi Dabli</span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="index.html#about">About</a>
+      <a href="index.html#process">Process</a>
+      <a href="index.html#skills">Skills</a>
+      <a href="index.html#beyond">Beyond the Tools</a>
+      <a href="index.html#projects">All Projects</a>
+      <a href="index.html#contact" class="nav-cta">Get in touch</a>
+    </nav>
+    <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<!-- ===================== PAGE HEADER ===================== -->
+<header class="page-header">
+  <div class="wrap">
+    <a href="index.html" class="back-link">&larr; Back to portfolio</a>
+    <span class="eyebrow"><span class="dot"></span>4 projects, live now</span>
+    <h1>Live Projects</h1>
+    <p>Every project below is finished and published, each with its own full case study, code and (where applicable) live dashboard. The rest of the portfolio's projects are still in progress; this page is just the ones you can read end to end right now.</p>
+  </div>
+</header>
+
+<!-- ===================== LIVE PROJECTS ===================== -->
+<section>
+  <div class="wrap">
+
+    <div class="proj-cat reveal">
+      <div class="cat-head">
+        <span class="cbadge">⚡</span>
+        <div><div class="ch-t">Live Freelance Projects</div><div class="ch-s">Hands on analytics work for real operational businesses</div></div>
+        <span class="count">2 projects</span>
+      </div>
+      <div class="proj-row">
+        <article class="pcard">
+          <div class="ptop"><div class="picon">🛢️</div><span class="pstatus st-live"><span class="ld"></span>Live</span></div>
+          <h4>Crude Oil Supply Chain &amp; Logistics Analytics</h4>
+          <p>A full data analytics project on refinery supply chain and logistics, analysing volume flows, supplier reliability, delivery efficiency and cost across two fuel products using SQL, Python and Tableau.</p>
+          <div class="pstack"><span>SQL</span><span>Python</span><span>Tableau</span></div>
+          <a class="plink" href="crude-oil-case-study.html">Read case study <span class="arr">→</span></a>
+        </article>
+        <article class="pcard">
+          <div class="ptop"><div class="picon">🍽️</div><span class="pstatus st-live"><span class="ld"></span>Live</span></div>
+          <h4>The Riverside Kitchen — Performance Analytics</h4>
+          <p>An end-to-end analysis of an independent restaurant, connecting demand (orders, menu, customers) to supply (suppliers, inventory, waste). Python-led, with menu-engineering analysis and an interactive Tableau dashboard.</p>
+          <div class="pstack"><span>Python</span><span>SQL</span><span>Tableau</span><span>Excel</span></div>
+          <a class="plink" href="riverside-kitchen-case-study.html">Read case study <span class="arr">→</span></a>
+        </article>
+      </div>
+    </div>
+
+    <div class="proj-cat reveal">
+      <div class="cat-head">
+        <span class="cbadge">🎓</span>
+        <div><div class="ch-t">Academics - Management Analytics, Decision Science and Business Intelligence</div><div class="ch-s">MSc Business Management, University of East Anglia</div></div>
+        <span class="count">1 project</span>
+      </div>
+      <div class="proj-row">
+        <article class="pcard">
+          <div class="ptop"><div class="picon">🚲</div><span class="pstatus st-live"><span class="ld"></span>Live</span></div>
+          <h4>VRIJLOOP — Decisions vs Outcomes</h4>
+          <p>A decision-analytics build on a multi-quarter management simulation of an Amsterdam bicycle brand — tracking each quarter's decisions against outcomes through the lens of bounded rationality. Excel rules engine → MySQL → Power BI.</p>
+          <div class="pstack"><span>Excel</span><span>SQL</span><span>Power BI</span><span>DAX</span></div>
+          <a class="plink" href="vrijloop-case-study.html">Read case study <span class="arr">→</span></a>
+        </article>
+      </div>
+    </div>
+
+    <div class="proj-cat reveal">
+      <div class="cat-head">
+        <span class="cbadge">📐</span>
+        <div><div class="ch-t">Academic, Statistical Modelling</div><div class="ch-s">BSc Mathematics, demonstrating quantitative foundations</div></div>
+        <span class="count">1 project</span>
+      </div>
+      <div class="proj-row">
+        <article class="pcard">
+          <div class="ptop"><div class="picon">📉</div><span class="pstatus st-live"><span class="ld"></span>Live</span></div>
+          <h4>Statistical Modelling Project I</h4>
+          <p>A reproducible simulation demonstrating how correlation, regression and hypothesis testing recover known relationships from noisy synthetic data.</p>
+          <div class="pstack"><span>Statistics</span><span>Regression</span><span>Python</span></div>
+          <a class="plink" href="statistical-modelling-project-1-case-study.html">Read case study <span class="arr">→</span></a>
+        </article>
+      </div>
+    </div>
+
+    <div style="margin-top:56px;text-align:center">
+      <a href="index.html#projects" class="btn btn-primary">See every project, including in-progress work <span class="arr">→</span></a>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand"><span class="mark">PD</span><span>Prachi Dabli</span></div>
+    <p>Business Intelligence · Decision Analytics · Commercial Insight &nbsp;·&nbsp; Built &amp; maintained by Prachi Dabli</p>
+    <p style="margin-top:8px;opacity:.7">© <span id="yr"></span> Prachi Dabli · London, UK</p>
+  </div>
+</footer>
+
+<button class="totop" id="totop" aria-label="Back to top">↑</button>
+
+<script>
+  // year
+  document.getElementById('yr').textContent=new Date().getFullYear();
+
+  // scroll progress + nav shadow + back to top
+  const nav=document.getElementById('nav'),bar=document.getElementById('progress'),toTop=document.getElementById('totop');
+  function onScroll(){
+    const h=document.documentElement;
+    const sc=h.scrollTop,max=h.scrollHeight-h.clientHeight;
+    bar.style.width=(max>0?(sc/max*100):0)+'%';
+    nav.classList.toggle('scrolled',sc>10);
+    toTop.classList.toggle('show',sc>600);
+  }
+  addEventListener('scroll',onScroll,{passive:true});onScroll();
+  toTop.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));
+
+  // mobile menu
+  const burger=document.getElementById('burger'),links=document.getElementById('navLinks');
+  burger.addEventListener('click',()=>{
+    const open=links.classList.toggle('open');
+    burger.classList.toggle('open',open);
+    document.body.classList.toggle('no-scroll',open);
+  });
+  links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+    links.classList.remove('open');burger.classList.remove('open');document.body.classList.remove('no-scroll');
+  }));
+
+  // reveal on scroll
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})
+  },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach((el,i)=>{
+    el.style.transitionDelay=(Math.min(i%6,5)*55)+'ms';
+    io.observe(el);
+  });
+</script>
+</body>
+</html>
