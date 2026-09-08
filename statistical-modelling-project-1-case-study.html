@@ -320,7 +320,7 @@
         <tr><td>sleep_hours</td><td>+0.40</td><td>0.295</td></tr>
       </tbody>
     </table>
-    <p>Together the predictors explain much more of the variation: <strong>R² = 0.637</strong> (adjusted R² = 0.629), up from 0.403 with study hours alone. Study hours, attendance, prior GPA, and extracurricular hours are all significant with the others held constant. Group study scores significantly higher than Self-study (p = 0.050, right at the conventional cutoff), and Tutoring higher still (p &lt; .001). Sleep does not reach significance (p = 0.295): see the note on that below, since it is a more interesting result than it first looks.</p>
+    <p>Together the predictors explain much more of the variation: <strong>R² = 0.637</strong> (adjusted R² = 0.629), up from 0.403 with study hours alone. Study hours, attendance, prior GPA, and extracurricular hours are all significant with the others held constant. Group study produced borderline evidence of a difference from Self-study (estimated difference = 1.83, p &asymp; 0.050), while Tutoring showed much stronger evidence of a difference (p &lt; .001). Sleep does not reach significance (p = 0.295): see the note on that below, since it is a more interesting result than it first looks.</p>
 
     <div class="card" style="margin:20px 0;background:var(--cream-2);border-color:var(--line)">
       <h4 style="margin:0 0 10px;color:var(--navy-700);font-size:16px">A non-significant result is not proof of no effect</h4>
@@ -341,7 +341,7 @@
           <tr><td>Tutoring vs. Self-study</td><td>+5.56</td><td>+4.10</td></tr>
         </tbody>
       </table>
-      <p style="margin:10px 0 0;font-size:14.5px">study_hours_per_week, attendance_rate and prior_gpa all land within about 10% of their true value. The three predictors with larger relative gaps are Group study vs. Self-study (estimated about 24% below true), Tutoring vs. Self-study (estimated about 36% above true), and extracurricular_hours (estimated about 74% above true in magnitude). All three come from the smaller or lower-variance slices of the data: Tutoring is the smallest study-method group at 64 students, Group study the next smallest at 103, and extracurricular_hours only varies over a narrow range of a few hours a week. A reminder that even a correctly-specified model recovers noisier estimates for effects it has less information to pin down.</p>
+      <p style="margin:10px 0 0;font-size:14.5px">study_hours_per_week, attendance_rate and prior_gpa all land within about 10% of their true value. The three predictors with larger relative gaps are Group study vs. Self-study (estimated about 24% below true), Tutoring vs. Self-study (estimated about 36% above true), and extracurricular_hours (estimated about 74% above true in magnitude). These differences illustrate how sampling noise, smaller group sizes and limited predictor variation affect coefficient recovery. The comparison is approximate because the fitted sleep term does not exactly reproduce the generator's threshold structure, and exam scores are clipped to the 0&ndash;100 range.</p>
     </div>
 
     <h4 style="margin:24px 0 6px;color:var(--navy-700);font-size:16px">Multicollinearity check (VIF)</h4>
@@ -358,7 +358,7 @@
         <tr><td>extracurricular_hours</td><td>1.06</td></tr>
       </tbody>
     </table>
-    <p>All VIFs sit well below the common concern threshold of 5, but they are meaningfully above 1.0 (unlike an independently-drawn predictor set would produce), reflecting the correlation deliberately built into study_hours, attendance and prior_gpa. The coefficients above remain interpretable, but they are not fully independent of one another: some of study_hours' apparent effect, for instance, is inseparable from its overlap with attendance and prior_gpa.</p>
+    <p>All VIFs sit well below the common concern threshold of 5, but they are meaningfully above 1.0 (unlike an independently-drawn predictor set would produce), reflecting the correlation deliberately built into study_hours, attendance and prior_gpa. The predictors share some information, which modestly increases coefficient uncertainty. However, the low VIF values indicate no serious multicollinearity or instability in the fitted estimates.</p>
     <p class="demo-note">Demonstrates: multiple regression, categorical predictors via dummy variables and an explicit reference category, adjusted R², multicollinearity diagnostics (VIF) on the full design matrix, and validating a model against known ground truth.</p>
   </div>
 </section>
@@ -367,7 +367,7 @@
 <section style="padding-top:0">
   <div class="wrap">
     <h3>Step 5: Regression diagnostics</h3>
-    <p>A model's R² and p-values are only trustworthy if its assumptions roughly hold. Rather than trusting the raw-outcome normality check from Step 1, the multiple regression's own <strong>residuals</strong> were examined directly: linearity and constant variance (residuals vs. fitted, and scale-location), normality (a Q-Q plot and a Shapiro-Wilk test on the residuals themselves), independence (Durbin-Watson), and influence (Cook's distance, to check no single student dominates the fit).</p>
+    <p>A model's R² and p-values are only trustworthy if its assumptions roughly hold. Rather than trusting the raw-outcome normality check from Step 1, the multiple regression's own <strong>residuals</strong> were examined directly: linearity and constant variance (residuals vs. fitted, and scale-location), normality (a Q-Q plot and a Shapiro-Wilk test on the residuals themselves), independence, established by the simulation design in which student records are generated separately, and influence (Cook's distance, to check no single student dominates the fit).</p>
     <p class="demo-note">Demonstrates: residual diagnostics, heteroscedasticity testing (Breusch-Pagan), and influence/leverage analysis: the checks that actually validate an OLS model, as distinct from the outcome variable's own distribution.</p>
   </div>
 </section>
@@ -380,10 +380,10 @@
     <div class="stat-grid">
       <div class="stat"><div class="n">p = 0.290</div><div class="l">Shapiro-Wilk on residuals <span class="sig sig-no">Fails to reject normality</span></div></div>
       <div class="stat"><div class="n">p = 0.819</div><div class="l">Breusch-Pagan (heteroscedasticity) <span class="sig sig-no">No evidence found</span></div></div>
-      <div class="stat"><div class="n">1.91</div><div class="l">Durbin-Watson (~2 = little autocorrelation)</div></div>
+      <div class="stat"><div class="n">1.91</div><div class="l">Durbin-Watson, reported for completeness (see caption)</div></div>
       <div class="stat"><div class="n">0.031</div><div class="l">Max Cook's distance (well under the 1.0 concern level)</div></div>
     </div>
-    <p class="fig-cap">Residuals scatter evenly around zero with no funnel shape (constant variance), the Q-Q plot tracks the reference line closely with only mild tail deviation (approximately normal), Durbin-Watson sits close to 2 (little autocorrelation), and while 17 of 320 points exceed the conventional 4/n screening threshold for Cook's distance, the largest value (0.031) is far below the 1.0 level usually treated as concerning, so no single student is unduly driving the fit. On these checks, the model's assumptions hold up reasonably well.</p>
+    <p class="fig-cap">Residuals scatter evenly around zero with no funnel shape (constant variance), and the Q-Q plot tracks the reference line closely with only mild tail deviation (approximately normal). Durbin-Watson is reported for completeness (1.91, close to the no-autocorrelation value of 2), but because these are unordered cross-sectional student records with no meaningful time or sequence axis, it is not treated as evidence of independence here; independence instead follows from the simulation design, in which each student record is generated separately. While 17 of 320 points exceed the conventional 4/n screening threshold for Cook's distance, the largest value (0.031) is far below the 1.0 level usually treated as concerning, so no single student is unduly driving the fit.</p>
   </div>
 </section>
 
@@ -408,12 +408,13 @@
 
     <div class="bq">
       <h4>2 · Study method (one-way ANOVA)</h4>
-      <p>H₀: mean exam score is equal across self-study, group-study, and tutoring students. Group means: self-study 70.09 (n = 153), group study 72.33 (n = 103), tutoring 76.18 (n = 64).</p>
+      <p>H₀: mean exam score is equal across self-study, group-study, and tutoring students. Group means: self-study 70.09 (n = 153), group study 72.33 (n = 103), tutoring 76.18 (n = 64). The standard one-way ANOVA assumes roughly equal variances across groups; Levene's test did not detect unequal group variances (p = 0.504), supporting the conventional one-way ANOVA for this simulated sample.</p>
       <div class="stat-grid">
+        <div class="stat"><div class="n">p = 0.504</div><div class="l">Levene's test (equal variances) <span class="sig sig-no">Assumption holds</span></div></div>
         <div class="stat"><div class="n">F = 6.22</div><div class="l">One-way ANOVA F-statistic</div></div>
         <div class="stat"><div class="n">p = 0.0022</div><div class="l">p-value <span class="sig sig-yes">Reject H₀</span></div></div>
       </div>
-      <p>This ANOVA is statistically significant: study method is associated with a real difference in mean exam score in this dataset. That agrees with the multiple regression in Step 4, which (holding study hours, attendance, GPA, sleep and extracurricular load constant) found Group study scoring significantly higher than Self-study (p = 0.050) and Tutoring scoring higher still (p &lt; .001). The ANOVA here is unadjusted for those other predictors, so it doesn't by itself say <em>why</em> the groups differ, only that they do; the regression's dummy coefficients are the adjusted version of the same comparison. Neither test was followed by a formal post-hoc procedure (e.g. Tukey's HSD) to pin down exactly which pair of groups drives the omnibus result: a natural next step, not done here.</p>
+      <p>This ANOVA is statistically significant: study method is associated with a real difference in mean exam score in this dataset. That agrees with the multiple regression in Step 4, which (holding study hours, attendance, GPA, sleep and extracurricular load constant) found borderline evidence of Group study scoring higher than Self-study (p &asymp; 0.050) and much stronger evidence for Tutoring (p &lt; .001). The ANOVA here is unadjusted for those other predictors, so it doesn't by itself say <em>why</em> the groups differ, only that they do; the regression's dummy coefficients are the adjusted version of the same comparison. Neither test was followed by a formal post-hoc procedure (e.g. Tukey's HSD) to pin down exactly which pair of groups drives the omnibus result: a natural next step, not done here.</p>
     </div>
 
     <div class="fig">
@@ -435,7 +436,7 @@
       <li>The multiple regression's <strong>residual diagnostics</strong> (Shapiro-Wilk on residuals p = 0.290, Breusch-Pagan p = 0.819, Durbin-Watson = 1.91, max Cook's distance 0.031) show no serious violation of OLS's assumptions and no single student dominating the fit.</li>
       <li>Multicollinearity is present but modest: all <strong>VIFs sit between 1.06 and 1.45</strong>, well under the usual concern threshold of 5.</li>
       <li>Students attending ≥85% of sessions score <strong>~10 points higher on average</strong> (Welch's t-test, p &lt; .001, 95% CI [7.65, 12.35]), but that threshold is arbitrary; this demonstrates detection of the programmed attendance relationship in this simulation, not evidence about real students, and the continuous attendance coefficient from the regression (+0.28 per percentage point) is the more defensible summary.</li>
-      <li><strong>Study method shows a statistically significant effect</strong> (one-way ANOVA, p = 0.0022), consistent with the multiple regression's finding that Group study and Tutoring both score significantly higher than Self-study (p = 0.050 and p &lt; .001) once the other predictors are controlled for.</li>
+      <li><strong>Study method shows a statistically significant effect</strong> (one-way ANOVA, p = 0.0022, with Levene's test supporting the equal-variance assumption at p = 0.504), consistent with the multiple regression's finding of borderline evidence for Group study (p &asymp; 0.050) and much stronger evidence for Tutoring (p &lt; .001), both relative to Self-study, once the other predictors are controlled for.</li>
       <li><strong>sleep_hours</strong> is the reminder to keep the other bullets honest: it has a real, programmed effect on exam score, but its regression coefficient is nowhere near significant (p = 0.295). A non-significant result here means "not detected in this sample," not "no effect."</li>
     </ul>
     <p>The overall workflow (distribution check, correlation screening, simple then multiple regression with a ground-truth check, residual diagnostics, and formal hypothesis testing) is the same structure used in every later analytics project in this portfolio, just applied here to its purest, most mathematical form. Because the data is synthetic, it also carries the unusual luxury of being able to check the model's answers against the ones built into the simulation.</p>

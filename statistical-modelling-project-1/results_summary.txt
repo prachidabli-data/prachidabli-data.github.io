@@ -57,7 +57,7 @@ Dep. Variable:             exam_score   R-squared:                       0.403
 Model:                            OLS   Adj. R-squared:                  0.401
 Method:                 Least Squares   F-statistic:                     214.8
 Date:                Tue, 08 Sep 2026   Prob (F-statistic):           1.62e-37
-Time:                        09:20:22   Log-Likelihood:                -1161.8
+Time:                        09:50:40   Log-Likelihood:                -1161.8
 No. Observations:                 320   AIC:                             2328.
 Df Residuals:                     318   BIC:                             2335.
 Df Model:                           1                                         
@@ -91,7 +91,7 @@ Dep. Variable:             exam_score   R-squared:                       0.637
 Model:                            OLS   Adj. R-squared:                  0.629
 Method:                 Least Squares   F-statistic:                     78.32
 Date:                Tue, 08 Sep 2026   Prob (F-statistic):           5.96e-65
-Time:                        09:20:23   Log-Likelihood:                -1082.1
+Time:                        09:50:40   Log-Likelihood:                -1082.1
 No. Observations:                 320   AIC:                             2180.
 Df Residuals:                     312   BIC:                             2210.
 Df Model:                           7                                         
@@ -127,7 +127,7 @@ because this dataset is simulated; not a real-data diagnostic):
   C(study_method, Treatment(reference='Self-study'))[T.Tutoring]: estimated = 5.558, true = 4.100
 
 ======================================================================
-6. MULTICOLLINEARITY — Variance Inflation Factors
+6. MULTICOLLINEARITY: Variance Inflation Factors
 ======================================================================
              variable  VIF
                 const 1.00
@@ -151,7 +151,12 @@ Shapiro-Wilk on RESIDUALS: W = 0.9944, p = 0.2902
 -> Fails to reject residual normality (p > .05)
 Breusch-Pagan test (heteroscedasticity): LM = 3.649, p = 0.8192
 -> No evidence of heteroscedasticity (p > .05)
-Durbin-Watson (independence of residuals): 1.912 (~2 indicates little autocorrelation)
+Durbin-Watson statistic: 1.912 (~2 indicates no
+first-order autocorrelation). Reported for completeness, but these are unordered
+cross-sectional student records with no meaningful time or sequence axis, so this
+statistic is not treated as evidence of independence here. Independence instead
+follows from the simulation design, in which each student record is generated
+separately.
 Cook's distance: max = 0.0314, 17 of 320 points exceed the 4/n = 0.0125 rule-of-thumb threshold for influence
 
 ======================================================================
@@ -174,6 +179,8 @@ Mean difference = 10.00 points, Welch-Satterthwaite df = 308.7, t* = 1.968, 95% 
 ======================================================================
 9. ONE-WAY ANOVA: exam_score by study_method
 ======================================================================
+Levene's test: statistic = 0.686, p = 0.5044
+-> No evidence of unequal group variances (p > .05): the equal-variance assumption behind the ANOVA below is reasonable.
 F-statistic = 6.216, p = 0.002249
 -> At least one group mean differs significantly (p < .05)
               count   mean    std

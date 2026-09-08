@@ -85,8 +85,8 @@ study_method = rng.choice(
 )
 
 # Small, deliberate effect of study method baked into the score below.
-# Reference category is "Group study" (dropped by patsy/pandas as the first
-# level alphabetically), so these effects are relative to Group study.
+# Self-study is the generating baseline. Group study receives +2.4
+# points and Tutoring receives +4.1 points relative to Self-study.
 method_effect = pd.Series(study_method).map(
     {"Self-study": 0.0, "Group study": 2.4, "Tutoring": 4.1}
 ).to_numpy()
@@ -96,7 +96,7 @@ method_effect = pd.Series(study_method).map(
 # ---------------------------------------------------------------------------
 # A linear combination of the predictors above, plus a mild penalty for
 # short sleep (below ~6 hours) and irreducible noise, then clipped to 0-100.
-# These are the TRUE generating coefficients — the regression later in the
+# These are the TRUE generating coefficients: the regression later in the
 # analysis recovers estimates of these from noisy, correlated data.
 
 TRUE_COEFS = {
@@ -106,8 +106,8 @@ TRUE_COEFS = {
     "prior_gpa": 8.5,
     "extracurricular_hours": -0.30,
     "sleep_penalty_per_hour_below_6": -1.8,
-    "study_method_self_study_vs_group": 0.0 - 2.4,
-    "study_method_tutoring_vs_group": 4.1 - 2.4,
+    "study_method_group_vs_self": 2.4,
+    "study_method_tutoring_vs_self": 4.1,
     "noise_sd": 7.5,
 }
 
