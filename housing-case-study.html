@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A Power BI and DAX case study on a housing sector portfolio command centre, tracking tenders from bid to award and contracts from award to delivery, built on synthetic reconstructed data.">
+<title>Housing Portfolio Analytics | Prachi Dabli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#16294A;
+    --deep-navy:#0F1E33;
+    --navy-900:#0B1626;
+    --amber:#E0A030;
+    --amber-dark:#BD831C;
+    --cream:#FAF6EE;
+    --cream-2:#F3EDE1;
+    --ink:#16294A;
+    --muted:#5C6579;
+    --line:#E7DFD0;
+    --card:#FFFFFF;
+    --good:#3F7D5A;
+    --bad:#B23A3A;
+    --display:'Bricolage Grotesque',sans-serif;
+    --body:'Hanken Grotesk',sans-serif;
+    --maxw:960px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;font-family:var(--body);color:var(--ink);
+    background:var(--cream);line-height:1.65;font-size:17px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--navy);}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+
+  /* top nav */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 24px;background:rgba(250,246,238,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    display:flex;justify-content:space-between;align-items:center;
+    width:100%;max-width:var(--maxw);margin:0 auto;
+  }
+  .topbar a.back{
+    font-weight:600;text-decoration:none;font-size:15px;color:var(--navy);
+  }
+  .topbar a.back:hover{color:var(--amber);}
+  .topbar .name{font-family:var(--display);font-weight:700;color:var(--navy);}
+
+  /* hero */
+  .hero{
+    background:var(--navy);color:var(--cream);
+    padding:64px 0 72px;position:relative;overflow:hidden;
+  }
+  .hero .wrap{position:relative;z-index:2;}
+  .eyebrow{
+    text-transform:uppercase;letter-spacing:.14em;font-size:12.5px;
+    font-weight:700;color:var(--amber);margin:0 0 18px;
+  }
+  .hero h1{
+    font-family:var(--display);font-weight:800;
+    font-size:clamp(34px,6vw,56px);line-height:1.04;margin:0 0 20px;
+    letter-spacing:-.01em;
+  }
+  .hero p.lede{
+    font-size:clamp(17px,2.2vw,20px);color:#D7DEEA;max-width:640px;margin:0 0 28px;
+  }
+  .tags{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:26px;}
+  .tag{
+    border:1px solid rgba(224,160,48,.5);color:var(--amber);
+    padding:5px 13px;border-radius:100px;font-size:13px;font-weight:600;
+  }
+  .statline{
+    font-size:14.5px;color:#AEB8C9;border-top:1px solid rgba(255,255,255,.14);
+    padding-top:20px;
+  }
+  .statline b{color:var(--cream);font-weight:700;}
+  /* rooftop skyline in hero */
+  .skyline{
+    position:absolute;right:0;bottom:0;width:min(420px,48vw);
+    opacity:.9;z-index:1;pointer-events:none;
+  }
+  @media(max-width:720px){.skyline{opacity:.14;right:-40px;}}
+
+  /* sections */
+  section{padding:56px 0;border-bottom:1px solid var(--line);}
+  section.alt{background:var(--cream-2);}
+  .label{
+    text-transform:uppercase;letter-spacing:.14em;font-size:12px;
+    font-weight:700;color:var(--amber);margin:0 0 10px;
+  }
+  h2{
+    font-family:var(--display);font-weight:700;
+    font-size:clamp(26px,3.6vw,36px);line-height:1.1;margin:0 0 22px;
+    letter-spacing:-.01em;color:var(--navy);
+  }
+  h3{
+    font-family:var(--display);font-weight:600;font-size:20px;
+    margin:26px 0 8px;color:var(--navy);
+  }
+  p{margin:0 0 16px;}
+  ul{margin:0 0 16px;padding-left:22px;}
+  li{margin-bottom:9px;}
+  strong{font-weight:700;}
+
+  /* dashboard block */
+  .dash{background:#0F1D36;color:var(--cream);text-align:center;border:none;}
+  .dash .label{color:var(--amber);}
+  .dash h2{color:var(--cream);}
+  .dash p{color:#C9D2E0;max-width:600px;margin:0 auto 26px;}
+  .shot{
+    display:block;width:100%;max-width:1000px;margin:0 auto;border-radius:10px;
+    border:1px solid rgba(255,255,255,.16);box-shadow:0 24px 60px rgba(0,0,0,.4);
+    background:#0B1626;min-height:220px;
+  }
+  .shotcap{font-size:13px;color:#9AA6BA;margin-top:14px;}
+  .btn{
+    display:inline-block;background:var(--amber);color:var(--navy);
+    text-decoration:none;font-weight:700;padding:12px 22px;border-radius:8px;
+    font-size:15px;margin-top:6px;transition:transform .12s ease;border:0;cursor:pointer;
+    font-family:inherit;
+  }
+  .btn:hover{transform:translateY(-2px);}
+  .btn-ghost{background:transparent;border:1.5px solid var(--line);color:var(--navy);}
+
+  /* KPI mini row */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 6px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 16px;}
+  .kpi .n{font-family:var(--display);font-weight:800;font-size:26px;color:var(--navy);line-height:1;}
+  .kpi .l{font-size:12.5px;color:var(--muted);margin-top:7px;}
+  @media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr);}}
+
+  /* callout */
+  .callout{
+    background:#FFF;border:1px solid var(--line);border-left:4px solid var(--amber);
+    border-radius:8px;padding:22px 24px;margin:26px 0;
+  }
+  .callout h3{margin-top:0;}
+
+  .dl-row{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 4px;}
+
+  /* interactive widget */
+  .widget{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px 26px 22px;margin:22px 0;}
+  .widget-controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
+  .metric-btn{
+    font-family:inherit;font-size:14px;font-weight:700;color:var(--navy);
+    background:var(--cream-2);border:1.5px solid var(--line);border-radius:100px;
+    padding:9px 18px;cursor:pointer;transition:.15s;
+  }
+  .metric-btn:hover{border-color:var(--amber);}
+  .metric-btn.active{background:var(--navy);color:var(--cream);border-color:var(--navy);}
+  .chart-svg{width:100%;height:auto;display:block;}
+  .chart-svg rect.bar{transition:height .45s cubic-bezier(.2,.7,.3,1), y .45s cubic-bezier(.2,.7,.3,1), fill .3s;}
+  .chart-svg text{font-family:var(--body);}
+  .chart-caption{font-size:14px;color:var(--muted);margin-top:16px;}
+
+  /* DAX showcase */
+  .dax-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px;}
+  .dax-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 20px;}
+  .dax-card h3{margin-top:0;font-size:17px;}
+  @media(max-width:900px){.dax-grid{grid-template-columns:1fr;}}
+
+  /* validation cards (reused for defend-it and problem-solving styling) */
+  .vcard{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:26px 26px 22px;margin:22px 0;
+  }
+  .vcard .kicker{
+    font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--amber);margin-bottom:8px;
+  }
+  .vcard h3{margin:0 0 16px;font-size:22px;}
+  pre{
+    background:var(--navy);color:#E9EEF6;border-radius:8px;padding:16px 18px;
+    overflow-x:auto;font-size:13px;line-height:1.55;margin:14px 0 4px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  pre .c{color:#9FB0C7;}
+  .shows{font-size:14.5px;color:var(--muted);margin-top:14px;}
+  .shows b{color:var(--navy);}
+
+  /* recommendations two-col */
+  .reco{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+  .reco h3{margin-top:0;}
+  @media(max-width:720px){.reco{grid-template-columns:1fr;}}
+
+  /* FAQ / defend it */
+  details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:12px;}
+  summary{font-family:var(--display);font-weight:600;color:var(--navy);cursor:pointer;font-size:16px;}
+  details p{margin:12px 0 4px;color:var(--muted);}
+  details[open] summary{color:var(--amber-dark);}
+
+  /* skills grid */
+  .skills{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .skill h3{margin:0 0 6px;font-size:17px;}
+  .skill p{font-size:14.5px;color:var(--muted);margin:0;}
+  @media(max-width:720px){.skills{grid-template-columns:1fr;}}
+
+  /* data table */
+  table{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:15px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);}
+  th{font-family:var(--display);font-weight:600;color:var(--navy);background:#fff;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;}
+
+  footer{padding:40px 0 60px;text-align:center;}
+  footer a{font-weight:600;text-decoration:none;}
+  .disclaim{font-size:13px;color:var(--muted);max-width:640px;margin:0 auto 24px;}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <a class="back" href="index.html">&larr; Back to portfolio</a>
+      <span class="name">Prachi Dabli</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <svg class="skyline" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="none" stroke="#FAF6EE" stroke-width="3" opacity="0.28">
+        <rect x="12" y="120" width="46" height="70"/>
+        <rect x="70" y="90" width="40" height="100"/>
+        <rect x="122" y="60" width="46" height="130"/>
+        <rect x="180" y="100" width="40" height="90"/>
+        <rect x="232" y="75" width="44" height="115"/>
+        <rect x="286" y="130" width="30" height="60"/>
+      </g>
+      <g fill="none" stroke="#E0A030" stroke-width="4" stroke-linecap="round" opacity="0.75">
+        <path d="M8 120 L35 96 L62 120"/>
+        <path d="M118 60 L145 34 L172 60"/>
+        <path d="M228 75 L256 50 L284 75"/>
+      </g>
+      <g fill="none" stroke="#FAF6EE" stroke-width="2" opacity="0.35">
+        <rect x="24" y="136" width="10" height="14"/><rect x="40" y="136" width="10" height="14"/>
+        <rect x="80" y="106" width="10" height="14"/><rect x="96" y="106" width="10" height="14"/>
+        <rect x="134" y="80" width="10" height="14"/><rect x="150" y="80" width="10" height="14"/>
+        <rect x="190" y="116" width="10" height="14"/><rect x="204" y="116" width="10" height="14"/>
+        <rect x="244" y="92" width="10" height="14"/><rect x="258" y="92" width="10" height="14"/>
+      </g>
+    </svg>
+    <div class="wrap">
+      <p class="eyebrow">Professional Experience &middot; Power BI &amp; DAX</p>
+      <h1>Housing Portfolio Analytics</h1>
+      <p class="lede">A portfolio command centre for a housing provider's tender and contract pipeline: tracking bids from first identification to award, and contracts from award through to delivery, so leadership can see the whole funnel and the whole book in one place.</p>
+      <div class="tags">
+        <span class="tag">Power BI</span>
+        <span class="tag">DAX</span>
+        <span class="tag">Star schema</span>
+        <span class="tag">Time intelligence</span>
+      </div>
+      <p class="statline">2 years &middot; 8 UK regions &middot; 1,546 tenders &middot; 413 contracts &middot; Power BI only, DAX led</p>
+    </div>
+  </header>
+
+  <!-- THE HONEST BIT, FIRST -->
+  <section>
+    <div class="wrap">
+      <p class="label">Before Anything Else</p>
+      <h2>The honest bit, first</h2>
+      <p>This project is based on a real housing sector role, tracking a live tender and contract book on a UK portfolio management platform. That underlying work is confidential: it belongs to a real employer, involved real bids and real contractors, and none of it can appear here.</p>
+      <p>So nothing here is real. Every table, every date, every contractor name and every figure in the dashboard below was <strong>generated from scratch</strong> by a documented Python script, built to reproduce the shape and behaviour of that kind of portfolio: the seasonal surge into financial year end, a funnel that narrows at each stage, win rates that vary by contractor tier, delivery that slips under load. Nothing here is copied, disguised, or approximated from confidential data; it is built independently from public knowledge of how housing tender pipelines behave.</p>
+      <div class="callout">
+        <h3>Why this is a feature, not a limitation</h3>
+        <p style="margin-bottom:0">Knowing what you cannot show, and being able to reconstruct a credible, internally consistent version of it anyway, is itself part of the job. Anyone can build a dashboard when the data is handed over. Handling the confidentiality boundary well, and still being able to demonstrate the modelling underneath it, is the harder and more useful skill.</p>
+      </div>
+      <div class="dl-row">
+        <a class="btn btn-ghost" href="housing_data/generate_housing_data.py" download>Data generator (.py) &darr;</a>
+        <a class="btn btn-ghost" href="housing_data/README.md" download>Data &amp; model README &darr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="dash">
+    <div class="wrap">
+      <p class="label">Interactive Dashboard</p>
+      <h2>The Power BI dashboard</h2>
+      <p>One dense, stretched canvas: a slicer bar for year, region and stage; six KPI cards with year on year indicators and an on time gauge; a pipeline half tracking the bid funnel and win rate trend; a contracts half tracking portfolio value, status and the contractor league table; and a full width contract ledger underneath.</p>
+      <a href="housing_dashboard.png" target="_blank" rel="noopener" title="Open full-size in a new tab">
+        <img class="shot" src="housing_dashboard.png" alt="Housing portfolio Power BI dashboard showing KPI cards, bid funnel, win rate trend, portfolio value over time and a contractor league table">
+      </a>
+      <p class="shotcap">Built in Power BI Desktop and shown here as a static image, click to open full-size. The full interactive report (.pbix) is available in the project repository.</p>
+    </div>
+  </section>
+
+  <!-- INTERACTIVE WIDGET -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">Try It Yourself</p>
+      <h2>Try it, no Power BI needed</h2>
+      <p>The dashboard's measure-switcher toggle is the single most useful bit of DAX in this build: one visual, three different numbers, chosen at click time. Here is the same idea in plain JavaScript, redrawing a chart of all 24 months from the real generated tender data, live in your browser.</p>
+      <div class="widget">
+        <div class="widget-controls">
+          <button class="metric-btn active" data-metric="value" type="button">Value &pound;m won</button>
+          <button class="metric-btn" data-metric="count" type="button">Bid count</button>
+          <button class="metric-btn" data-metric="winrate" type="button">Win rate %</button>
+        </div>
+        <svg id="chart" class="chart-svg" viewBox="0 0 960 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Monthly chart of the selected metric"></svg>
+        <p class="chart-caption">This mirrors the DAX pattern below: a disconnected selector table drives <code>SWITCH(SELECTEDVALUE(...))</code> to redraw one visual as three different measures, without duplicating the chart.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DAX SHOWCASE -->
+  <section>
+    <div class="wrap">
+      <p class="label">DAX Showcase</p>
+      <h2>Three measures that are not as trivial as they look</h2>
+      <div class="dax-grid">
+        <div class="dax-card">
+          <h3>The measure switcher</h3>
+          <pre>Selected Metric =
+VAR m =
+  SELECTEDVALUE(
+    dim_measure_selector[measure_name],
+    "Value"
+  )
+RETURN
+  SWITCH(
+    m,
+    "Value", [Portfolio Value],
+    "Count", [Total Bids],
+    "Win Rate", [Win Rate]
+  )</pre>
+          <p class="shows"><b>Why it's not trivial:</b> <code>dim_measure_selector</code> has no relationship to anything. It only exists to be read by <code>SELECTEDVALUE</code>, so a slicer on it changes what a single visual measures rather than which rows it filters. Get the disconnected table wrong and Power BI tries to filter with it instead, and every value silently returns blank.</p>
+        </div>
+        <div class="dax-card">
+          <h3>The league table</h3>
+          <pre>Contractor Rank =
+RANKX(
+  ALL(dim_contractor[contractor_name]),
+  [On-Time %],
+  ,
+  DESC,
+  DENSE
+)</pre>
+          <p class="shows"><b>Why it's not trivial:</b> inside a contractor's own table row, row context has already filtered everything down to that one contractor. <code>ALL()</code> deliberately clears that filter just for the ranking calculation, so every contractor is re-ranked against the full list on every single row, not just compared to itself.</p>
+        </div>
+        <div class="dax-card">
+          <h3>The time intelligence pair</h3>
+          <pre>Portfolio Value YoY % =
+DIVIDE(
+  [Portfolio Value] - [Portfolio Value PY],
+  [Portfolio Value PY]
+)
+
+Cumulative Portfolio Value =
+CALCULATE(
+  [Portfolio Value],
+  FILTER(
+    ALL(dim_date[date_key]),
+    dim_date[date_key] <= MAX(dim_date[date_key])
+  )
+)</pre>
+          <p class="shows"><b>Why it's not trivial:</b> both depend on <code>dim_date</code> being marked as an official date table with no gaps. <code>DATEADD</code> and the running total both walk the calendar directly; a single missing day, or a date table built from the fact tables instead of a continuous calendar, breaks both silently.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM TO DECISION TO MEASURE -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">Modelling With Intent</p>
+      <h2>From business question to DAX measure</h2>
+      <p>Every measure in this build exists to answer a specific question a portfolio lead actually asks, and to drive a specific decision. None of them were built because "it might be interesting to know."</p>
+      <table>
+        <thead><tr><th>Business question</th><th>Decision it drives</th><th>Measure used</th></tr></thead>
+        <tbody>
+          <tr><td>Which contractors should we keep?</td><td>Consolidate toward reliable partners</td><td>Contractor Rank (RANKX)</td></tr>
+          <tr><td>Is the portfolio growing?</td><td>Resourcing and hiring plans</td><td>Portfolio Value YoY %</td></tr>
+          <tr><td>Where is win rate slipping?</td><td>Focus bid effort by region</td><td>Win Rate 3M Rolling</td></tr>
+          <tr><td>How healthy is the pipeline?</td><td>Forecast revenue</td><td>Conversion funnel and cumulative value</td></tr>
+          <tr><td>Are we hitting delivery targets?</td><td>Escalate at risk contracts</td><td>On Time % vs. 90% target (gauge)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATIONS -->
+  <section>
+    <div class="wrap">
+      <p class="label">Recommendations</p>
+      <h2>What the portfolio reveals</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="n">28.8%</div><div class="l">overall win rate</div></div>
+        <div class="kpi"><div class="n">86.7%</div><div class="l">on time delivery, vs. 90% target</div></div>
+        <div class="kpi"><div class="n">+66%</div><div class="l">portfolio value, 2024 to 2025</div></div>
+        <div class="kpi"><div class="n">11</div><div class="l">contracts currently at risk</div></div>
+      </div>
+      <div class="reco">
+        <div>
+          <h3>What's working</h3>
+          <ul>
+            <li><strong>Tier 1 contractors win nearly three times as often</strong> as Tier 3 (49.6% vs. 16.6%) and deliver on time far more reliably (94% vs. 77%): worth consolidating more of the book toward them.</li>
+            <li><strong>Portfolio value grew about 66%</strong> year on year (roughly &pound;87M in 2024 to &pound;145M in 2025), a healthier trajectory than headline win rate alone would suggest.</li>
+            <li><strong>North West and South West post the strongest win rates</strong> (both 35%), evidence the volume led bid strategy is working best outside London.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>What to watch</h3>
+          <ul>
+            <li><strong>On time delivery sits at 86.7%</strong>, just under the 90% target, with 11 contracts currently flagged at risk, concentrated among Tier 2 and Tier 3 contractors.</li>
+            <li><strong>Bid volume spikes hard into the financial year end</strong> (January to March) and drops through summer: bid writing resource should flex with it rather than stay flat all year.</li>
+            <li><strong>London and the South East carry the highest average contract value</strong> (&pound;1.05M and &pound;0.93M) but the lowest volume and among the lowest win rates (25% and 25%): those regions likely need fewer, larger, more carefully targeted bids rather than the volume approach that works in the north.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEFEND IT -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">Interview Prep</p>
+      <h2>How I'd defend this in an interview</h2>
+      <details>
+        <summary>Why synthetic data, not the real portfolio?</summary>
+        <p>The real data is confidential: it belongs to a real employer and involves real bids, real contractors and real commercial figures. Rather than approximate or disguise it, I rebuilt the structure from scratch: same table shapes, same kind of seasonality, same funnel logic, generated by a documented script with a fixed seed. That is also, itself, a skill worth showing: reconstructing a credible dataset from documented rules rather than eyeballing plausible numbers.</p>
+      </details>
+      <details>
+        <summary>Why a gauge and a donut, when the rest of the dashboard avoids them?</summary>
+        <p>Both were deliberate exceptions, not a habit. A gauge is the right chart for exactly one comparison, a single value against a single target, which is precisely what On Time % vs. the 90% target is. A donut works for a small part-to-whole split, which is what portfolio value by status (active, completed, at risk, on hold) is. Everywhere else on the dashboard the comparison is between many categories or over time, where a bar or line tells the truth better than a gauge or donut would.</p>
+      </details>
+      <details>
+        <summary>What was the hardest piece of DAX?</summary>
+        <p>The measure switcher and the RANKX league table, for the same underlying reason: both are about deliberately controlling context. The switcher only works if the selector table stays disconnected, so a slicer on it changes what is measured rather than filtering rows. RANKX only re-ranks every contractor correctly if <code>ALL()</code> clears the row context first; without it, every contractor would rank itself first against nobody.</p>
+      </details>
+      <details>
+        <summary>Why Power BI only this time, no SQL or Excel?</summary>
+        <p>Deliberately. My other portfolio projects already show that range: the crude oil project is SQL led, the Riverside Kitchen project is Python led, and VRIJLOOP runs Excel through SQL into Power BI. This project exists specifically to isolate and prove Power BI and DAX modelling depth on its own, without another tool doing the heavy lifting underneath it.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section>
+    <div class="wrap">
+      <p class="label">Competency Shown</p>
+      <h2>Skills demonstrated</h2>
+      <div class="skills">
+        <div class="skill"><h3>DAX modelling</h3><p>Disconnected selector tables, RANKX with explicit context control, and a marked date table driving YoY and running totals.</p></div>
+        <div class="skill"><h3>Star schema design</h3><p>Two fact grains on conformed dimensions, with a continuous date table and a deliberately disconnected measure selector.</p></div>
+        <div class="skill"><h3>Dashboard design</h3><p>A dense, single canvas layout, with a gauge and donut used only where they are genuinely the right chart.</p></div>
+        <div class="skill"><h3>Data confidentiality</h3><p>Recognising what cannot be shown, and rebuilding a credible, internally consistent substitute from documented rules instead.</p></div>
+        <div class="skill"><h3>Commercial insight</h3><p>Reading win rate, value and delivery together to say where to consolidate, resource and target regionally.</p></div>
+        <div class="skill"><h3>Front end</h3><p>A dependency free JavaScript widget that reproduces the dashboard's measure switcher logic, driven by the real generated data.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="disclaim">Synthetic, reconstructed dataset, generated from a documented Python script to model a real housing sector portfolio for portfolio demonstration. No real, client, or identifiable data appears anywhere on this page.</p>
+    <a href="index.html">&larr; Back to portfolio</a>
+  </footer>
+
+<script>
+(function(){
+  var monthly = {
+    labels: ["Jan 24","Feb 24","Mar 24","Apr 24","May 24","Jun 24","Jul 24","Aug 24","Sep 24","Oct 24","Nov 24","Dec 24","Jan 25","Feb 25","Mar 25","Apr 25","May 25","Jun 25","Jul 25","Aug 25","Sep 25","Oct 25","Nov 25","Dec 25"],
+    value:   [15.49,17.89,15.32,14.83,5.97,4.40,3.71,3.46,10.48,3.54,7.05,6.13,13.87,16.78,17.09,6.54,5.73,9.54,6.92,6.32,9.31,9.62,11.98,10.01],
+    count:   [100,103,112,66,44,41,41,27,65,56,53,53,92,95,93,69,49,55,37,41,67,66,68,53],
+    winrate: [28.0,31.1,29.5,39.4,22.7,19.5,19.5,22.2,26.2,12.5,22.6,22.6,28.3,30.5,32.3,18.8,26.5,27.8,39.4,31.6,36.2,44.1,51.4,39.4]
+  };
+  var meta = {
+    value:   {fmt: function(v){return "£" + v.toFixed(1) + "m";}, color:"#E0A030"},
+    count:   {fmt: function(v){return Math.round(v) + " bids";}, color:"#16294A"},
+    winrate: {fmt: function(v){return v.toFixed(1) + "%";}, color:"#3F7D5A"}
+  };
+
+  var svgNS = "http://www.w3.org/2000/svg";
+  var chart = document.getElementById("chart");
+  var W = 960, H = 340, padL = 46, padR = 10, padT = 20, padB = 46;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+  var n = monthly.labels.length;
+  var gap = 6;
+  var barW = (plotW / n) - gap;
+
+  var bars = [], titles = [], valueLabels = [];
+  var axisLines = [];
+
+  function el(tag, attrs){
+    var e = document.createElementNS(svgNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  // gridlines
+  for (var g = 0; g <= 3; g++){
+    var y = padT + (plotH / 3) * g;
+    var line = el("line", {x1:padL, x2:W-padR, y1:y, y2:y, stroke:"#E7DFD0", "stroke-width":1});
+    chart.appendChild(line);
+  }
+  var axisMaxLabel = el("text", {x: padL - 6, y: padT + 4, "text-anchor":"end", "font-size":11, fill:"#5C6579"});
+  chart.appendChild(axisMaxLabel);
+
+  for (var i = 0; i < n; i++){
+    var x = padL + i * (barW + gap);
+    var bar = el("rect", {class:"bar", x:x, width: Math.max(barW,2), y: H - padB, height: 0, fill: meta.value.color, rx:2});
+    var title = el("title", {});
+    bar.appendChild(title);
+    chart.appendChild(bar);
+    bars.push(bar); titles.push(title);
+
+    if (i % 3 === 0){
+      var lbl = el("text", {x: x + barW/2, y: H - padB + 18, "text-anchor":"middle", "font-size":11, fill:"#5C6579"});
+      lbl.textContent = monthly.labels[i];
+      chart.appendChild(lbl);
+    }
+  }
+
+  function render(metric){
+    var data = monthly[metric];
+    var max = Math.max.apply(null, data) * 1.12 || 1;
+    axisMaxLabel.textContent = meta[metric].fmt(max);
+    for (var i = 0; i < n; i++){
+      var v = data[i];
+      var h = (v / max) * plotH;
+      bars[i].style.fill = meta[metric].color;
+      bars[i].style.height = h.toFixed(1);
+      bars[i].style.y = (H - padB - h).toFixed(1);
+      titles[i].textContent = monthly.labels[i] + ": " + meta[metric].fmt(v);
+    }
+  }
+
+  var buttons = document.querySelectorAll(".metric-btn");
+  buttons.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      buttons.forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      render(btn.getAttribute("data-metric"));
+    });
+  });
+
+  render("value");
+})();
+</script>
+
+</body>
+</html>
