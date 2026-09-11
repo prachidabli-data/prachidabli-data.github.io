@@ -1,0 +1,9 @@
+region_id,region_name,region_short
+R01,North West,NW
+R02,North East,NE
+R03,Yorkshire & Humber,Y&H
+R04,West Midlands,WM
+R05,East of England,EoE
+R06,London,LDN
+R07,South East,SE
+R08,South West,SW

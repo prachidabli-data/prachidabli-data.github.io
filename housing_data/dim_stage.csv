@@ -1,0 +1,6 @@
+stage_id,stage_name,is_terminal
+1,Identified,0
+2,Bidding,0
+3,Submitted,0
+4,Won,1
+5,Lost,1
