@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="A Power BI and DAX case study on a housing sector portfolio command centre, tracking tenders from bid to award and contracts from award to delivery, built on synthetic reconstructed data.">
+<meta name="description" content="An Excel, MySQL and Python case study on a housing sector portfolio command centre, tracking tenders from bid to award and contracts from award to delivery, built on synthetic reconstructed data.">
 <title>Housing Portfolio Analytics | Prachi Dabli</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -161,11 +161,18 @@
   .chart-svg text{font-family:var(--body);}
   .chart-caption{font-size:14px;color:var(--muted);margin-top:16px;}
 
-  /* DAX showcase */
-  .dax-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px;}
-  .dax-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 20px;}
-  .dax-card h3{margin-top:0;font-size:17px;}
-  @media(max-width:900px){.dax-grid{grid-template-columns:1fr;}}
+  /* SQL showcase */
+  .sql-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px;}
+  .sql-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 20px;}
+  .sql-card h3{margin-top:0;font-size:17px;}
+  @media(max-width:900px){.sql-grid{grid-template-columns:1fr;}}
+
+  /* chart gallery */
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:8px;}
+  .chart-grid figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .chart-grid img{width:100%;display:block;border-radius:6px;}
+  .chart-grid figure.full{grid-column:1 / -1;}
+  @media(max-width:760px){.chart-grid{grid-template-columns:1fr;}}
 
   /* validation cards (reused for defend-it and problem-solving styling) */
   .vcard{
@@ -248,16 +255,16 @@
       </g>
     </svg>
     <div class="wrap">
-      <p class="eyebrow">Professional Experience &middot; Power BI &amp; DAX</p>
+      <p class="eyebrow">Professional Experience &middot; Excel, SQL &amp; Python</p>
       <h1>Housing Portfolio Analytics</h1>
       <p class="lede">A portfolio command centre for a housing provider's tender and contract pipeline: tracking bids from first identification to award, and contracts from award through to delivery, so leadership can see the whole funnel and the whole book in one place.</p>
       <div class="tags">
-        <span class="tag">Power BI</span>
-        <span class="tag">DAX</span>
-        <span class="tag">Star schema</span>
-        <span class="tag">Time intelligence</span>
+        <span class="tag">Excel</span>
+        <span class="tag">MySQL</span>
+        <span class="tag">Python</span>
+        <span class="tag">Matplotlib</span>
       </div>
-      <p class="statline">2 years &middot; 8 UK regions &middot; 1,546 tenders &middot; 413 contracts &middot; Power BI only, DAX led</p>
+      <p class="statline">2 years &middot; 8 UK regions &middot; 1,546 tenders &middot; 413 contracts &middot; Excel, MySQL and Python throughout</p>
     </div>
   </header>
 
@@ -274,6 +281,8 @@
       </div>
       <div class="dl-row">
         <a class="btn btn-ghost" href="housing_data/generate_housing_data.py" download>Data generator (.py) &darr;</a>
+        <a class="btn btn-ghost" href="housing_data/validate_sql.py" download>SQL validation script (.py) &darr;</a>
+        <a class="btn btn-ghost" href="housing_data/generate_charts.py" download>Chart script (.py) &darr;</a>
         <a class="btn btn-ghost" href="housing_data/README.md" download>Data &amp; model README &darr;</a>
       </div>
     </div>
@@ -282,13 +291,39 @@
   <!-- DASHBOARD -->
   <section class="dash">
     <div class="wrap">
-      <p class="label">Interactive Dashboard</p>
-      <h2>The Power BI dashboard</h2>
-      <p>One dense, stretched canvas: a slicer bar for year, region and stage; six KPI cards with year on year indicators and an on time gauge; a pipeline half tracking the bid funnel and win rate trend; a contracts half tracking portfolio value, status and the contractor league table; and a full width contract ledger underneath.</p>
-      <a href="housing_dashboard.png" target="_blank" rel="noopener" title="Open full-size in a new tab">
-        <img class="shot" src="housing_dashboard.png" alt="Housing portfolio Power BI dashboard showing KPI cards, bid funnel, win rate trend, portfolio value over time and a contractor league table">
+      <p class="label">The Dashboard</p>
+      <h2>The Excel dashboard</h2>
+      <p>One workbook, built entirely from PivotTables and PivotCharts on the same underlying data: a KPI summary sheet with year on year comparisons and an on time delivery cell formatted red, amber or green against the 90% target; a pivot chart tracking the bid funnel and win rate trend; a pivot chart of portfolio value and status by contract; and a full contract ledger as a filterable pivot table underneath.</p>
+      <a href="housing_excel_dashboard.png" target="_blank" rel="noopener" title="Open full-size in a new tab">
+        <img class="shot" src="housing_excel_dashboard.png" alt="Housing portfolio Excel dashboard showing PivotTable KPI cards, a bid funnel pivot chart, win rate trend, portfolio value over time and a contractor league table">
       </a>
-      <p class="shotcap">Built in Power BI Desktop and shown here as a static image, click to open full-size. The full interactive report (.pbix) is available in the project repository.</p>
+      <p class="shotcap">Built in Excel using PivotTables and PivotCharts, shown here as a static image, click to open full-size. The full workbook (.xlsx) is available in the project repository.</p>
+    </div>
+  </section>
+
+  <!-- PYTHON ANALYSIS -->
+  <section>
+    <div class="wrap">
+      <p class="label">Python Analysis</p>
+      <h2>The same data, charted in Matplotlib</h2>
+      <p>Alongside the Excel workbook, the underlying tables were analysed directly in Python. Every chart below is generated straight from <code>fact_tenders.csv</code> and <code>fact_contracts.csv</code> by <code>generate_charts.py</code>, no placeholders, no manual touch-up.</p>
+      <div class="chart-grid">
+        <figure class="full">
+          <img src="housing_data/images/01_funnel.png" alt="Bar chart of the bid funnel narrowing from 1,546 identified tenders to 1,504 reaching bidding, 1,430 reaching submitted, and 413 won">
+        </figure>
+        <figure class="full">
+          <img src="housing_data/images/02_monthly_trend.png" alt="Two-panel chart of monthly bid volume surging into each financial year end and dipping over summer, with 3-month rolling win rate climbing through late 2025">
+        </figure>
+        <figure>
+          <img src="housing_data/images/03_region.png" alt="Bar charts comparing bid volume and average bid value by region, showing northern regions leading on volume and London and the South East leading on value">
+        </figure>
+        <figure>
+          <img src="housing_data/images/04_contractor_league.png" alt="Horizontal bar chart ranking all 12 contractors by on-time delivery percentage, coloured by tier">
+        </figure>
+        <figure class="full">
+          <img src="housing_data/images/05_status.png" alt="Bar chart of contract status: 374 completed, 26 active, 11 at risk, 2 on hold">
+        </figure>
+      </div>
     </div>
   </section>
 
@@ -296,8 +331,8 @@
   <section class="alt">
     <div class="wrap">
       <p class="label">Try It Yourself</p>
-      <h2>Try it, no Power BI needed</h2>
-      <p>The dashboard's measure-switcher toggle is the single most useful bit of DAX in this build: one visual, three different numbers, chosen at click time. Here is the same idea in plain JavaScript, redrawing a chart of all 24 months from the real generated tender data, live in your browser.</p>
+      <h2>Try it in your browser</h2>
+      <p>The Excel dashboard's most useful pivot chart lets you flip between three views of the same monthly data: value won, bid count, and win rate. Here is that same idea rebuilt in plain JavaScript, redrawing a chart of all 24 months from the real generated tender data, live in your browser.</p>
       <div class="widget">
         <div class="widget-controls">
           <button class="metric-btn active" data-metric="value" type="button">Value &pound;m won</button>
@@ -305,63 +340,83 @@
           <button class="metric-btn" data-metric="winrate" type="button">Win rate %</button>
         </div>
         <svg id="chart" class="chart-svg" viewBox="0 0 960 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Monthly chart of the selected metric"></svg>
-        <p class="chart-caption">This mirrors the DAX pattern below: a disconnected selector table drives <code>SWITCH(SELECTEDVALUE(...))</code> to redraw one visual as three different measures, without duplicating the chart.</p>
+        <p class="chart-caption">One dataset, three views, redrawn on click rather than three separate charts: the same "pick a metric" idea as the pivot chart's field toggle in the workbook, and the SQL queries below.</p>
       </div>
     </div>
   </section>
 
-  <!-- DAX SHOWCASE -->
+  <!-- SQL SHOWCASE -->
   <section>
     <div class="wrap">
-      <p class="label">DAX Showcase</p>
-      <h2>Three measures that are not as trivial as they look</h2>
-      <div class="dax-grid">
-        <div class="dax-card">
-          <h3>The measure switcher</h3>
-          <pre>Selected Metric =
-VAR m =
-  SELECTEDVALUE(
-    dim_measure_selector[measure_name],
-    "Value"
-  )
-RETURN
-  SWITCH(
-    m,
-    "Value", [Portfolio Value],
-    "Count", [Total Bids],
-    "Win Rate", [Win Rate]
-  )</pre>
-          <p class="shows"><b>Why it's not trivial:</b> <code>dim_measure_selector</code> has no relationship to anything. It only exists to be read by <code>SELECTEDVALUE</code>, so a slicer on it changes what a single visual measures rather than which rows it filters. Get the disconnected table wrong and Power BI tries to filter with it instead, and every value silently returns blank.</p>
+      <p class="label">SQL Showcase</p>
+      <h2>Three queries that are not as trivial as they look</h2>
+      <p>All three run against the star schema in MySQL and feed both the Excel pivot tables and the Python charts above. Real output from this dataset is shown under each query.</p>
+      <div class="sql-grid">
+        <div class="sql-card">
+          <h3>The rolling win rate</h3>
+          <pre>SELECT
+  d.month_year,
+  ROUND(100.0 * SUM(t.is_won)
+    / SUM(t.is_decided), 1)
+    AS win_rate_pct,
+  ROUND(100.0 *
+    SUM(SUM(t.is_won)) OVER (
+      ORDER BY d.month_year_sort
+      ROWS BETWEEN 2 PRECEDING
+      AND CURRENT ROW
+    ) /
+    SUM(SUM(t.is_decided)) OVER (
+      ORDER BY d.month_year_sort
+      ROWS BETWEEN 2 PRECEDING
+      AND CURRENT ROW
+    ), 1)
+    AS win_rate_3m_rolling_pct
+FROM fact_tenders t
+JOIN dim_date d
+  ON d.date_key = t.identified_date_key
+GROUP BY d.month_year, d.month_year_sort
+ORDER BY d.month_year_sort;</pre>
+          <p class="shows"><b>Why it's not trivial:</b> the window function has to sum the monthly totals over a 3 row frame before dividing, not average three already-divided percentages, which would quietly overweight quiet months. Real output: the rolling win rate reaches 45.1% in December 2025, up from 23.8% in June 2025.</p>
         </div>
-        <div class="dax-card">
-          <h3>The league table</h3>
-          <pre>Contractor Rank =
-RANKX(
-  ALL(dim_contractor[contractor_name]),
-  [On-Time %],
-  ,
-  DESC,
-  DENSE
-)</pre>
-          <p class="shows"><b>Why it's not trivial:</b> inside a contractor's own table row, row context has already filtered everything down to that one contractor. <code>ALL()</code> deliberately clears that filter just for the ranking calculation, so every contractor is re-ranked against the full list on every single row, not just compared to itself.</p>
+        <div class="sql-card">
+          <h3>The contractor league table</h3>
+          <pre>SELECT
+  c.contractor_name,
+  c.tier,
+  COUNT(*) AS contracts,
+  ROUND(100.0 * SUM(f.is_on_time)
+    / COUNT(*), 1) AS on_time_pct,
+  RANK() OVER (
+    ORDER BY SUM(f.is_on_time) * 1.0
+      / COUNT(*) DESC
+  ) AS on_time_rank
+FROM fact_contracts f
+JOIN dim_contractor c
+  ON c.contractor_id = f.contractor_id
+GROUP BY c.contractor_name, c.tier
+ORDER BY on_time_rank;</pre>
+          <p class="shows"><b>Why it's not trivial:</b> <code>RANK()</code> has to run on the aggregated on-time rate per contractor, not on individual contract rows, so the aggregation and the ranking are two separate steps in the same query. Real output: Northfield Construction ranks first at 96.6%, but the highest ranked Tier 3 contractor, Anchor Point Contracts at 91.3%, still beats three of the six Tier 2 contractors.</p>
         </div>
-        <div class="dax-card">
-          <h3>The time intelligence pair</h3>
-          <pre>Portfolio Value YoY % =
-DIVIDE(
-  [Portfolio Value] - [Portfolio Value PY],
-  [Portfolio Value PY]
-)
-
-Cumulative Portfolio Value =
-CALCULATE(
-  [Portfolio Value],
-  FILTER(
-    ALL(dim_date[date_key]),
-    dim_date[date_key] <= MAX(dim_date[date_key])
-  )
-)</pre>
-          <p class="shows"><b>Why it's not trivial:</b> both depend on <code>dim_date</code> being marked as an official date table with no gaps. <code>DATEADD</code> and the running total both walk the calendar directly; a single missing day, or a date table built from the fact tables instead of a continuous calendar, breaks both silently.</p>
+        <div class="sql-card">
+          <h3>The year on year comparison</h3>
+          <pre>SELECT
+  SUBSTR(f.start_date_key, 1, 4)
+    AS start_year,
+  ROUND(SUM(f.contract_value)
+    / 1000000.0, 1)
+    AS portfolio_value_gbp_m,
+  ROUND(100.0 * (
+    SUM(f.contract_value) -
+    LAG(SUM(f.contract_value)) OVER (
+      ORDER BY SUBSTR(f.start_date_key, 1, 4)
+    )
+  ) / LAG(SUM(f.contract_value)) OVER (
+    ORDER BY SUBSTR(f.start_date_key, 1, 4)
+  ), 1) AS yoy_pct
+FROM fact_contracts f
+GROUP BY start_year
+ORDER BY start_year;</pre>
+          <p class="shows"><b>Why it's not trivial:</b> <code>LAG()</code> reaches back to the prior year's total without a self-join, but the first year in the window has no prior row to reach back to, so that year's year-on-year figure is correctly null rather than zero. Real output: portfolio value rises from &pound;87.2M in 2024 to &pound;144.8M in 2025, up 66.0%.</p>
         </div>
       </div>
     </div>
@@ -371,16 +426,16 @@ CALCULATE(
   <section class="alt">
     <div class="wrap">
       <p class="label">Modelling With Intent</p>
-      <h2>From business question to DAX measure</h2>
-      <p>Every measure in this build exists to answer a specific question a portfolio lead actually asks, and to drive a specific decision. None of them were built because "it might be interesting to know."</p>
+      <h2>From business question to measure</h2>
+      <p>Every query, pivot and chart in this build exists to answer a specific question a portfolio lead actually asks, and to drive a specific decision. None of them were built because "it might be interesting to know."</p>
       <table>
-        <thead><tr><th>Business question</th><th>Decision it drives</th><th>Measure used</th></tr></thead>
+        <thead><tr><th>Business question</th><th>Decision it drives</th><th>Where it's answered</th></tr></thead>
         <tbody>
-          <tr><td>Which contractors should we keep?</td><td>Consolidate toward reliable partners</td><td>Contractor Rank (RANKX)</td></tr>
-          <tr><td>Is the portfolio growing?</td><td>Resourcing and hiring plans</td><td>Portfolio Value YoY %</td></tr>
-          <tr><td>Where is win rate slipping?</td><td>Focus bid effort by region</td><td>Win Rate 3M Rolling</td></tr>
-          <tr><td>How healthy is the pipeline?</td><td>Forecast revenue</td><td>Conversion funnel and cumulative value</td></tr>
-          <tr><td>Are we hitting delivery targets?</td><td>Escalate at risk contracts</td><td>On Time % vs. 90% target (gauge)</td></tr>
+          <tr><td>Which contractors should we keep?</td><td>Consolidate toward reliable partners</td><td>Contractor league table (MySQL <code>RANK()</code>, mirrored in a pivot table)</td></tr>
+          <tr><td>Is the portfolio growing?</td><td>Resourcing and hiring plans</td><td>Year on year value (MySQL <code>LAG()</code>, an Excel pivot comparison)</td></tr>
+          <tr><td>Where is win rate slipping?</td><td>Focus bid effort by region</td><td>3-month rolling win rate (MySQL window function, charted in Python)</td></tr>
+          <tr><td>How healthy is the pipeline?</td><td>Forecast revenue</td><td>Funnel chart (Python) and a running total pivot table (Excel)</td></tr>
+          <tr><td>Are we hitting delivery targets?</td><td>Escalate at risk contracts</td><td>On time % vs. 90% target (Excel KPI cell, conditional formatting)</td></tr>
         </tbody>
       </table>
     </div>
@@ -428,16 +483,20 @@ CALCULATE(
         <p>The real data is confidential: it belongs to a real employer and involves real bids, real contractors and real commercial figures. Rather than approximate or disguise it, I rebuilt the structure from scratch: same table shapes, same kind of seasonality, same funnel logic, generated by a documented script with a fixed seed. That is also, itself, a skill worth showing: reconstructing a credible dataset from documented rules rather than eyeballing plausible numbers.</p>
       </details>
       <details>
-        <summary>Why a gauge and a donut, when the rest of the dashboard avoids them?</summary>
-        <p>Both were deliberate exceptions, not a habit. A gauge is the right chart for exactly one comparison, a single value against a single target, which is precisely what On Time % vs. the 90% target is. A donut works for a small part-to-whole split, which is what portfolio value by status (active, completed, at risk, on hold) is. Everywhere else on the dashboard the comparison is between many categories or over time, where a bar or line tells the truth better than a gauge or donut would.</p>
+        <summary>Why split the work across Excel, MySQL and Python instead of one tool?</summary>
+        <p>Because that mirrors how the work actually divides. MySQL does the heavy aggregation once, in one place, using window functions that would be painful to replicate by hand in a spreadsheet: the rolling win rate, the contractor ranking, the year on year comparison. Excel turns that into a workbook a non-technical stakeholder can open, filter and trust without touching a line of code. Python and Matplotlib go deeper, producing the analytical charts that explain <em>why</em> the numbers moved. Each tool is doing the part it is genuinely best at, rather than one tool doing everything by default.</p>
       </details>
       <details>
-        <summary>What was the hardest piece of DAX?</summary>
-        <p>The measure switcher and the RANKX league table, for the same underlying reason: both are about deliberately controlling context. The switcher only works if the selector table stays disconnected, so a slicer on it changes what is measured rather than filtering rows. RANKX only re-ranks every contractor correctly if <code>ALL()</code> clears the row context first; without it, every contractor would rank itself first against nobody.</p>
+        <summary>Why compute the rolling win rate and the ranking in SQL rather than in Excel?</summary>
+        <p>Excel can do both with array formulas or PivotTable tricks, but the logic then lives inside one workbook's formulas and has to be rebuilt if anyone wants it anywhere else. Doing it once in MySQL, with a window function, means the same query feeds the Excel PivotTable, the Python charts, and any future front end, without three separate implementations quietly drifting out of sync with each other.</p>
       </details>
       <details>
-        <summary>Why Power BI only this time, no SQL or Excel?</summary>
-        <p>Deliberately. My other portfolio projects already show that range: the crude oil project is SQL led, the Riverside Kitchen project is Python led, and VRIJLOOP runs Excel through SQL into Power BI. This project exists specifically to isolate and prove Power BI and DAX modelling depth on its own, without another tool doing the heavy lifting underneath it.</p>
+        <summary>What was the hardest piece of SQL?</summary>
+        <p>The rolling win rate. It is tempting to average three months of already-calculated percentages, but that quietly overweights quiet months with few decided bids. The correct version sums the numerator and the denominator separately over the window frame, then divides once, which meant nesting a window function inside another aggregate rather than writing the obvious first draft.</p>
+      </details>
+      <details>
+        <summary>Why synthetic data generated in Python rather than by hand?</summary>
+        <p>A hand-typed "realistic looking" dataset tends to be internally inconsistent in ways that are hard to spot but easy for a reviewer to poke holes in: totals that do not reconcile, a funnel that does not narrow, values that do not vary sensibly by region. Generating it from a documented script with a fixed seed means every number in this case study, and every chart, can be reproduced and checked by anyone who runs the same three scripts.</p>
       </details>
     </div>
   </section>
@@ -448,12 +507,12 @@ CALCULATE(
       <p class="label">Competency Shown</p>
       <h2>Skills demonstrated</h2>
       <div class="skills">
-        <div class="skill"><h3>DAX modelling</h3><p>Disconnected selector tables, RANKX with explicit context control, and a marked date table driving YoY and running totals.</p></div>
-        <div class="skill"><h3>Star schema design</h3><p>Two fact grains on conformed dimensions, with a continuous date table and a deliberately disconnected measure selector.</p></div>
-        <div class="skill"><h3>Dashboard design</h3><p>A dense, single canvas layout, with a gauge and donut used only where they are genuinely the right chart.</p></div>
+        <div class="skill"><h3>SQL analysis</h3><p>MySQL window functions (rolling averages, RANK, LAG) and joins across a star schema, validated against real output.</p></div>
+        <div class="skill"><h3>Excel dashboard design</h3><p>PivotTables and PivotCharts built for a non-technical stakeholder to open directly, with conditional-formatted KPIs against a target.</p></div>
+        <div class="skill"><h3>Python &amp; Matplotlib</h3><p>Turning the same underlying tables into the funnel, trend, region and league charts on this page, with no manual touch-up.</p></div>
         <div class="skill"><h3>Data confidentiality</h3><p>Recognising what cannot be shown, and rebuilding a credible, internally consistent substitute from documented rules instead.</p></div>
         <div class="skill"><h3>Commercial insight</h3><p>Reading win rate, value and delivery together to say where to consolidate, resource and target regionally.</p></div>
-        <div class="skill"><h3>Front end</h3><p>A dependency free JavaScript widget that reproduces the dashboard's measure switcher logic, driven by the real generated data.</p></div>
+        <div class="skill"><h3>Front end</h3><p>A dependency free JavaScript widget that reproduces the "one dataset, three views" idea live in the browser, driven by the real generated data.</p></div>
       </div>
     </div>
   </section>
