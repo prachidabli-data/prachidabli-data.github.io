@@ -197,8 +197,8 @@ python3 housing_data/generate_charts.py
 
 ## What is not in this repository
 
-The Excel workbook (`.xlsx`) and its exported screenshot
-(`housing_excel_dashboard.png`, referenced by `housing-case-study.html`)
-are built separately in Excel, since this environment cannot run desktop
-Excel. They are added to the repository afterwards, alongside this
-generated data.
+The Excel workbook (`.xlsx`) and a screenshot of it
+(`housing_excel_dashboard.png`) are built separately in Excel, since this
+environment cannot run desktop Excel. Once added to the repository, the
+screenshot can be linked from the dashboard section of
+`housing-case-study.html`.
