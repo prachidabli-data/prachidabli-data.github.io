@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A commercial and financial analytics case study on a 23-project UK infrastructure portfolio, reproducing an original Power BI and DAX build in Python and Matplotlib on synthetic data.">
+<title>Infrastructure Commercial &amp; Financial Analytics | Prachi Dabli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#16294A;
+    --deep-navy:#0F1E33;
+    --navy-900:#0B1626;
+    --amber:#E0A030;
+    --amber-dark:#BD831C;
+    --cream:#FAF6EE;
+    --cream-2:#F3EDE1;
+    --ink:#16294A;
+    --muted:#5C6579;
+    --line:#E7DFD0;
+    --card:#FFFFFF;
+    --good:#3F7D5A;
+    --bad:#B23A3A;
+    --display:'Bricolage Grotesque',sans-serif;
+    --body:'Hanken Grotesk',sans-serif;
+    --maxw:960px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;font-family:var(--body);color:var(--ink);
+    background:var(--cream);line-height:1.65;font-size:17px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--navy);}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+
+  /* top nav */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 24px;background:rgba(250,246,238,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    display:flex;justify-content:space-between;align-items:center;
+    width:100%;max-width:var(--maxw);margin:0 auto;
+  }
+  .topbar a.back{font-weight:600;text-decoration:none;font-size:15px;color:var(--navy);}
+  .topbar a.back:hover{color:var(--amber);}
+  .topbar .name{font-family:var(--display);font-weight:700;color:var(--navy);}
+
+  /* hero */
+  .hero{background:var(--navy);color:var(--cream);padding:64px 0 72px;position:relative;overflow:hidden;}
+  .hero .wrap{position:relative;z-index:2;}
+  .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:12.5px;font-weight:700;color:var(--amber);margin:0 0 18px;}
+  .hero h1{font-family:var(--display);font-weight:800;font-size:clamp(32px,5.6vw,52px);line-height:1.06;margin:0 0 20px;letter-spacing:-.01em;}
+  .hero p.lede{font-size:clamp(17px,2.2vw,20px);color:#D7DEEA;max-width:640px;margin:0 0 28px;}
+  .tags{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:26px;}
+  .tag{border:1px solid rgba(224,160,48,.5);color:var(--amber);padding:5px 13px;border-radius:100px;font-size:13px;font-weight:600;}
+  .statline{font-size:14.5px;color:#AEB8C9;border-top:1px solid rgba(255,255,255,.14);padding-top:20px;}
+  .statline b{color:var(--cream);font-weight:700;}
+  .bridge{position:absolute;right:0;bottom:0;width:min(420px,48vw);opacity:.85;z-index:1;pointer-events:none;}
+  @media(max-width:720px){.bridge{opacity:.14;right:-30px;}}
+
+  /* sections */
+  section{padding:56px 0;border-bottom:1px solid var(--line);}
+  section.alt{background:var(--cream-2);}
+  .label{text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:700;color:var(--amber);margin:0 0 10px;}
+  h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.6vw,36px);line-height:1.1;margin:0 0 22px;letter-spacing:-.01em;color:var(--navy);}
+  h3{font-family:var(--display);font-weight:600;font-size:20px;margin:26px 0 8px;color:var(--navy);}
+  p{margin:0 0 16px;}
+  ul{margin:0 0 16px;padding-left:22px;}
+  li{margin-bottom:9px;}
+  strong{font-weight:700;}
+
+  /* callout */
+  .callout{background:#FFF;border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:8px;padding:22px 24px;margin:26px 0;}
+  .callout h3{margin-top:0;}
+
+  /* KPI mini row */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 6px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 16px;}
+  .kpi .n{font-family:var(--display);font-weight:800;font-size:24px;color:var(--navy);line-height:1;}
+  .kpi .l{font-size:12.5px;color:var(--muted);margin-top:7px;}
+  @media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr);}}
+
+  /* Python / Power BI tabbed component */
+  .pybi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 20px 22px;margin:22px 0;}
+  .pybi-tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .pybi-tab{
+    font-family:inherit;font-size:13.5px;font-weight:700;color:var(--navy);
+    background:var(--cream-2);border:1.5px solid var(--line);border-radius:100px;
+    padding:8px 16px;cursor:pointer;transition:.15s;
+  }
+  .pybi-tab:hover{border-color:var(--amber);}
+  .pybi-tab.active{background:var(--navy);color:var(--cream);border-color:var(--navy);}
+  .pybi-panel{display:none;}
+  .pybi-panel.active{display:block;}
+  .pybi-panel img{width:100%;display:block;border-radius:6px;}
+  .chart-note{font-size:14px;color:var(--muted);margin-top:12px;margin-bottom:0;}
+  pre{background:var(--navy);color:#E9EEF6;border-radius:8px;padding:16px 18px;overflow-x:auto;font-size:13px;line-height:1.55;margin:0 0 4px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  .dax-note{font-size:14px;color:var(--muted);margin-top:14px;margin-bottom:0;}
+  .dax-note b{color:var(--navy);}
+  .interactive-note{font-size:13px;color:var(--amber-dark);font-weight:600;margin:0 0 12px;}
+
+  /* plain chart card, no tabs */
+  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px 20px;margin:22px 0;}
+  .chart-card img{width:100%;display:block;border-radius:6px;}
+
+  /* problems / collaboration cards */
+  .collab{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px 26px 22px;margin:22px 0;}
+  .collab .kicker{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:8px;}
+  .collab h3{margin:0 0 16px;font-size:20px;}
+  .cstep{display:grid;grid-template-columns:120px 1fr;gap:16px;margin-bottom:12px;align-items:start;}
+  .cstep .s{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);background:var(--cream);border-radius:6px;padding:4px 0;text-align:center;}
+  .cstep.who .s{color:#8A5A00;}
+  .cstep.fix .s{color:var(--good);}
+  .cstep.outcome .s{color:var(--navy);}
+  .cstep p{margin:0;}
+  @media(max-width:600px){.cstep{grid-template-columns:1fr;gap:4px;}}
+
+  /* process steps */
+  .steps{counter-reset:step;margin:18px 0 0;padding:0;list-style:none;}
+  .steps li{position:relative;padding-left:44px;margin-bottom:16px;}
+  .steps li::before{
+    counter-increment:step;content:counter(step);position:absolute;left:0;top:0;
+    width:30px;height:30px;border-radius:50%;background:var(--navy);color:var(--cream);
+    font-family:var(--display);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;
+  }
+
+  /* recommendations */
+  .reco-list{margin:0;padding-left:22px;}
+  .reco-list li{margin-bottom:11px;}
+
+  /* skills grid */
+  .skills{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .skill h3{margin:0 0 6px;font-size:17px;}
+  .skill p{font-size:14.5px;color:var(--muted);margin:0;}
+  @media(max-width:720px){.skills{grid-template-columns:1fr;}}
+
+  .dl-row{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 4px;}
+  .dl-row a{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 16px;font-size:14px;font-weight:600;text-decoration:none;color:var(--navy);}
+  .dl-row a:hover{border-color:var(--amber);}
+
+  footer{padding:40px 0 60px;text-align:center;}
+  footer a{font-weight:600;text-decoration:none;}
+  .disclaim{font-size:13px;color:var(--muted);max-width:640px;margin:0 auto 24px;}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <a class="back" href="https://prachidabli-data.github.io/index.html">← Back to portfolio</a>
+      <span class="name">Prachi Dabli</span>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero">
+    <svg class="bridge" viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="10" y1="160" x2="270" y2="160" stroke="#FAF6EE" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+      <line x1="80" y1="18" x2="80" y2="160" stroke="#FAF6EE" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+      <line x1="200" y1="18" x2="200" y2="160" stroke="#FAF6EE" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+      <path d="M14 158 Q80 40 140 130 Q200 40 266 158" fill="none" stroke="#E0A030" stroke-width="3" opacity="0.65"/>
+      <g stroke="#E0A030" stroke-width="2" opacity="0.4">
+        <line x1="40" y1="99" x2="40" y2="160"/>
+        <line x1="60" y1="66" x2="60" y2="160"/>
+        <line x1="100" y1="66" x2="100" y2="160"/>
+        <line x1="120" y1="100" x2="120" y2="160"/>
+        <line x1="160" y1="100" x2="160" y2="160"/>
+        <line x1="180" y1="66" x2="180" y2="160"/>
+        <line x1="220" y1="66" x2="220" y2="160"/>
+        <line x1="240" y1="99" x2="240" y2="160"/>
+      </g>
+    </svg>
+    <div class="wrap">
+      <p class="eyebrow">Professional Experience · Commercial &amp; Financial Analytics</p>
+      <h1>Infrastructure Commercial &amp; Financial Analytics</h1>
+      <p class="lede">Commercial and operational analysis across a 23 project UK infrastructure portfolio: performance reporting, cost analysis, procurement and process automation that supported real procurement decisions. The analytical spine is Earned Value Management (EVM) plus procurement savings.</p>
+      <div class="tags">
+        <span class="tag">Power BI</span>
+        <span class="tag">DAX</span>
+        <span class="tag">Python</span>
+        <span class="tag">EVM</span>
+        <span class="tag">SQL</span>
+      </div>
+      <p class="statline">36 months · 23 projects · EVM + procurement · <b>Power BI original, Python reproduction</b></p>
+    </div>
+  </header>
+
+  <!-- HONEST FRAMING -->
+  <section>
+    <div class="wrap">
+      <p class="label">About This Page</p>
+      <h2>Two tools, one analysis, no client data</h2>
+      <p>This analysis was originally built and delivered in <strong>Power BI</strong>, on live client data, during an infrastructure commercial analytics role. That data is confidential and cannot appear here in any form.</p>
+      <div class="callout">
+        <h3>How this page is honest about that</h3>
+        <p style="margin-bottom:0">Every chart below is reproduced in <strong>Python and Matplotlib</strong>, run on a <strong>synthetic dataset</strong> built to mirror the structure and behaviour of the real portfolio, not to copy any real figures. Alongside each Python chart is a <strong>Power BI view</strong>: the DAX measure that drove the original, and a note on how it was set up to be interactive. Both the reproduction and the original skill are real; only the data behind the Python version is invented.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ANALYSIS -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">The Analysis</p>
+      <h2>Where the portfolio stands</h2>
+      <p>23 projects, £261.0M of budget at completion, running from January 2023 to December 2025. At the portfolio level the numbers look broadly healthy: cost performance index (CPI) 1.021, schedule performance index (SPI) 0.983. That aggregate hides the real story, which only shows up once you look project by project.</p>
+
+      <div class="pybi">
+        <div class="pybi-tabs">
+          <button class="pybi-tab active" data-target="py-scurve" type="button">Python view</button>
+          <button class="pybi-tab" data-target="bi-scurve" type="button">Power BI view</button>
+        </div>
+        <div class="pybi-panel active" id="py-scurve">
+          <img src="infrastructure_data/images/01_evm_scurve.png" alt="Line chart of cumulative Planned Value, Earned Value and Actual Cost across the 36 month portfolio, Actual Cost tracking slightly above Earned Value">
+          <p class="chart-note">The signature EVM chart: Planned Value, Earned Value and Actual Cost, cumulative across the whole portfolio. Earned Value sits just under Planned Value for most of the window, the visible signature of schedule slippage, before the gap narrows toward the end.</p>
+        </div>
+        <div class="pybi-panel" id="bi-scurve">
+          <p class="interactive-note">Interactive setup: slicers by project, region and project type; drill-through to a project detail page.</p>
+          <pre>Planned Value = SUM(fact_evm[planned_value])
+Earned Value  = SUM(fact_evm[earned_value])
+Actual Cost   = SUM(fact_evm[actual_cost])
+
+Cumulative Earned Value =
+CALCULATE([Earned Value],
+    FILTER(ALL(dim_date[date_key]), dim_date[date_key] <= MAX(dim_date[date_key])))</pre>
+          <p class="dax-note"><b>Why it matters commercially:</b> the three base measures are simple sums, but plotted cumulatively against the date table they become the one chart a commercial lead reads first, whether the portfolio is on track before looking at a single project.</p>
+        </div>
+      </div>
+
+      <div class="pybi">
+        <div class="pybi-tabs">
+          <button class="pybi-tab active" data-target="py-cpi" type="button">Python view</button>
+          <button class="pybi-tab" data-target="bi-cpi" type="button">Power BI view</button>
+        </div>
+        <div class="pybi-panel active" id="py-cpi">
+          <img src="infrastructure_data/images/02_cpi_by_project.png" alt="Horizontal bar chart of Cost Performance Index by project, sorted, 9 of 23 projects below the 1.0 reference line in red">
+          <p class="chart-note">9 of 23 projects have a CPI below 1.0, meaning they are spending more than the value of work completed. Oldport Civic Centre is the worst, at 0.79.</p>
+        </div>
+        <div class="pybi-panel" id="bi-cpi">
+          <p class="interactive-note">Interactive setup: CPI shown as a KPI card per project on the drill-through page, conditionally formatted red below 1.0.</p>
+          <pre>CPI = DIVIDE([Earned Value], [Actual Cost])</pre>
+          <p class="dax-note"><b>Why it matters commercially:</b> CPI below 1.0 today is the earliest signal of an overspend that has not been reported yet. It is the number that triggers escalation, well before final cost is known.</p>
+        </div>
+      </div>
+
+      <div class="pybi">
+        <div class="pybi-tabs">
+          <button class="pybi-tab active" data-target="py-spi" type="button">Python view</button>
+          <button class="pybi-tab" data-target="bi-spi" type="button">Power BI view</button>
+        </div>
+        <div class="pybi-panel active" id="py-spi">
+          <img src="infrastructure_data/images/03_spi_by_project.png" alt="Horizontal bar chart of Schedule Performance Index by project, sorted, 10 of 23 projects below the 1.0 reference line in red">
+          <p class="chart-note">10 of 23 projects have an SPI below 1.0. The overlap with the CPI chart above is the point: several projects, Oldport Civic Centre and Colne Valley Interchange among them, are behind on both measures at once.</p>
+        </div>
+        <div class="pybi-panel" id="bi-spi">
+          <p class="interactive-note">Interactive setup: same drill-through page as CPI, SPI and CPI shown side by side so both are read together, not separately.</p>
+          <pre>SPI = DIVIDE([Earned Value], [Planned Value])</pre>
+          <p class="dax-note"><b>Why it matters commercially:</b> SPI on its own only says a project is late. Read alongside CPI it says whether being late is also costing money, which is the difference between a scheduling conversation and a commercial one.</p>
+        </div>
+      </div>
+
+      <div class="pybi">
+        <div class="pybi-tabs">
+          <button class="pybi-tab active" data-target="py-cv" type="button">Python view</button>
+          <button class="pybi-tab" data-target="bi-cv" type="button">Power BI view</button>
+        </div>
+        <div class="pybi-panel active" id="py-cv">
+          <img src="infrastructure_data/images/04_cost_variance.png" alt="Diverging bar chart of Cost Variance by project in millions of pounds, Fairholme School Extension the most favourable, Oldport Civic Centre the most negative">
+          <p class="chart-note">Cost variance in cash terms. Fairholme School Extension is £5.5M ahead of its spend; Oldport Civic Centre is £2.8M over, the largest single overspend in the portfolio.</p>
+        </div>
+        <div class="pybi-panel" id="bi-cv">
+          <p class="interactive-note">Interactive setup: cost and schedule variance shown as matching KPI cards, with the EAC forecast beneath them on the same page.</p>
+          <pre>Cost Variance     = [Earned Value] - [Actual Cost]
+Schedule Variance = [Earned Value] - [Planned Value]
+
+Budget at Completion = SUM(dim_project[budget_at_completion])
+Estimate at Completion (EAC) = DIVIDE([Budget at Completion], [CPI])
+Variance at Completion       = [Budget at Completion] - [Estimate at Completion (EAC)]</pre>
+          <p class="dax-note"><b>Why it matters commercially:</b> EAC forecasts the final cost from current performance, so a CPI below 1 projects an overspend the commercial team can act on early, rather than discovering it at project close.</p>
+        </div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="n">£261.0M</div><div class="l">portfolio budget at completion</div></div>
+        <div class="kpi"><div class="n">£260.9M</div><div class="l">portfolio estimate at completion (EAC)</div></div>
+        <div class="kpi"><div class="n">3</div><div class="l">projects both over budget and behind schedule below 0.9</div></div>
+        <div class="kpi"><div class="n">£176.5M</div><div class="l">total procurement baseline</div></div>
+      </div>
+      <p style="margin-top:16px">The portfolio EAC sits almost exactly on budget, within £71,000 of BAC across £261M. That is the trap in reading only the portfolio total: the projects running over are being offset, almost exactly, by the projects running under. Oldport Civic Centre, Colne Valley Interchange and Riverside Leisure Centre are the three projects below 0.9 on both CPI and SPI at once, and none of that shows up in the headline number.</p>
+
+      <div class="chart-card">
+        <img src="infrastructure_data/images/07_health_matrix.png" alt="Scatter chart of Schedule Performance Index against Cost Performance Index for all 23 projects, quadrant lines at 1.0, 6 projects in the behind and over budget quadrant">
+        <p class="chart-note" style="margin-top:12px">Every project plotted on both measures at once. 6 projects sit in the bottom left quadrant, behind schedule and over budget together; 3 of those are severely behind on both. This is the view that turns two separate bar charts into one escalation list.</p>
+      </div>
+
+      <div class="pybi">
+        <div class="pybi-tabs">
+          <button class="pybi-tab active" data-target="py-save" type="button">Python view</button>
+          <button class="pybi-tab" data-target="bi-save" type="button">Power BI view</button>
+        </div>
+        <div class="pybi-panel active" id="py-save">
+          <img src="infrastructure_data/images/06_savings_by_category.png" alt="Horizontal bar chart of procurement savings against baseline by cost category, all six categories positive, Design highest at 7.5 percent">
+          <p class="chart-note">Procurement saved £7.6M against a £176.5M baseline, 4.3% overall. Design and Overheads save the most as a share of baseline; Subcontract barely saves anything, 0.6%, despite carrying the third largest total spend.</p>
+        </div>
+        <div class="pybi-panel" id="bi-save">
+          <p class="interactive-note">Interactive setup: a category slicer drives both the savings chart and a supplier league table beneath it, so a category can be filtered straight through to the suppliers behind it.</p>
+          <pre>Procurement Savings = SUM(fact_procurement[baseline_estimate]) - SUM(fact_procurement[actual_spend])
+Savings % = DIVIDE([Procurement Savings], SUM(fact_procurement[baseline_estimate]))</pre>
+          <p class="dax-note"><b>Why it matters commercially:</b> a flat savings percentage across the whole portfolio hides exactly which categories are worth renegotiating. Subcontract's near zero savings rate, against real spend, is where the next commercial conversation should start.</p>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <img src="infrastructure_data/images/05_procurement_by_category.png" alt="Bar chart of actual procurement spend by cost category, Design highest, Plant lowest">
+        <p class="chart-note" style="margin-top:12px">Spend by category, for scale against the savings chart above. Design carries the largest single spend at £33.5M, with Overheads and Subcontract close behind.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT I DID -->
+  <section>
+    <div class="wrap">
+      <p class="label">What I Did</p>
+      <h2>How the real work was delivered</h2>
+      <ol class="steps">
+        <li>Understood the commercial question with the project manager and commercial lead: where is the portfolio over budget or behind schedule, and where can procurement save.</li>
+        <li>Pulled cost data from the finance system and schedule and progress data from the project controls system.</li>
+        <li>Reconciled and cleaned the two sources: aligned cost codes, handled missing baselines, and checked totals against known figures.</li>
+        <li>Built the EVM model: cumulative Planned Value, Earned Value and Actual Cost per project per month, then CPI, SPI, variances and EAC.</li>
+        <li>Analysed procurement: committed versus actual spend by supplier and category, and savings against baseline.</li>
+        <li>Automated the monthly refresh, so the report rebuilt itself each period instead of being remade by hand.</li>
+        <li>Reported to the project manager and procurement, translating the numbers into decisions: which projects to escalate, and where to renegotiate.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- PROBLEMS AND COLLABORATION -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">Problems, and How We Solved Them</p>
+      <h2>Delivery is a team sport</h2>
+      <p>None of the problems below were solved alone. Each one needed a specific person outside the report itself, the project manager, a finance analyst, the commercial lead, and a decision the team made together.</p>
+
+      <div class="collab">
+        <span class="kicker">Data reconciliation</span>
+        <h3>Mismatched cost codes</h3>
+        <div class="cstep problem"><span class="s">Problem</span><p>Finance and project controls used different cost code structures, so costs would not line up against the schedule.</p></div>
+        <div class="cstep who"><span class="s">Worked with</span><p>The project manager and a finance analyst.</p></div>
+        <div class="cstep fix"><span class="s">Solution</span><p>Agreed a single mapping and a shared cost code taxonomy across both systems.</p></div>
+        <div class="cstep outcome"><span class="s">Outcome</span><p>The EVM model became possible for the first time, and the mapping became the standard used in every later report.</p></div>
+      </div>
+
+      <div class="collab">
+        <span class="kicker">Baseline data</span>
+        <h3>Missing baselines</h3>
+        <div class="cstep problem"><span class="s">Problem</span><p>Several projects had no clean cost baseline to measure performance against.</p></div>
+        <div class="cstep who"><span class="s">Worked with</span><p>The commercial lead.</p></div>
+        <div class="cstep fix"><span class="s">Solution</span><p>Reconstructed baselines from the approved budgets, and documented every assumption made along the way.</p></div>
+        <div class="cstep outcome"><span class="s">Outcome</span><p>Defensible baselines the commercial lead could stand behind in front of the client, not just numbers that happened to exist.</p></div>
+      </div>
+
+      <div class="collab">
+        <span class="kicker">Process</span>
+        <h3>Slow manual reporting</h3>
+        <div class="cstep problem"><span class="s">Problem</span><p>The monthly report took days to assemble by hand across the team.</p></div>
+        <div class="cstep who"><span class="s">Worked with</span><p>The wider commercial team who fed data into the report each month.</p></div>
+        <div class="cstep fix"><span class="s">Solution</span><p>Automated the extraction and the EVM calculations end to end.</p></div>
+        <div class="cstep outcome"><span class="s">Outcome</span><p>The build time dropped from days to hours, freeing the team for analysis rather than assembly.</p></div>
+      </div>
+
+      <div class="collab">
+        <span class="kicker">Standardisation</span>
+        <h3>Disagreement on forecasting</h3>
+        <div class="cstep problem"><span class="s">Problem</span><p>The team disagreed on how to forecast final cost, with different people favouring different methods project to project.</p></div>
+        <div class="cstep who"><span class="s">Worked with</span><p>The project manager, facilitating a decision across the team.</p></div>
+        <div class="cstep fix"><span class="s">Solution</span><p>Standardised on the CPI based EAC formula for every project, rather than leaving it to individual judgement.</p></div>
+        <div class="cstep outcome"><span class="s">Outcome</span><p>Every project was forecast consistently, so portfolio totals could finally be compared and trusted across the board.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATIONS -->
+  <section>
+    <div class="wrap">
+      <p class="label">Recommendations</p>
+      <h2>What the portfolio reveals</h2>
+      <ul class="reco-list">
+        <li><strong>Escalate the behind and over budget quadrant early.</strong> The 6 projects behind schedule and over budget together, and especially the 3 below 0.9 on both, are where the portfolio's real risk concentrates, not in the healthy-looking portfolio total.</li>
+        <li><strong>Use the CPI based EAC as an early warning, not a closing figure.</strong> It flags a likely overspend while there is still time to act on it, rather than at project close when the cost is already sunk.</li>
+        <li><strong>Focus renegotiation where the savings rate is weakest, not where spend is largest.</strong> Subcontract carries real spend but almost no savings against baseline; that gap is worth more attention than a category that is already saving well.</li>
+        <li><strong>Standardise cost codes and baselines across the portfolio.</strong> Every finding above depended on that reconciliation happening first; without it, performance is not comparable project to project.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="alt">
+    <div class="wrap">
+      <p class="label">Competency Shown</p>
+      <h2>Skills demonstrated</h2>
+      <div class="skills">
+        <div class="skill"><h3>EVM and commercial analysis</h3><p>Building CPI, SPI, variances and EAC from raw cost and schedule data, and reading them as a commercial story.</p></div>
+        <div class="skill"><h3>Power BI and DAX</h3><p>The original build: measures, drill-through, and an interactive slicer setup by project, region and type.</p></div>
+        <div class="skill"><h3>Python and Matplotlib</h3><p>A faithful, portfolio-safe reproduction of the same analysis, chart for chart.</p></div>
+        <div class="skill"><h3>Data reconciliation</h3><p>Aligning finance and project controls systems that were never built to talk to each other.</p></div>
+        <div class="skill"><h3>Process automation</h3><p>Turning a multi day manual report into an automated monthly refresh.</p></div>
+        <div class="skill"><h3>Stakeholder collaboration</h3><p>Working with the project manager, commercial lead and finance team to solve problems the data alone could not.</p></div>
+        <div class="skill"><h3>Data confidentiality</h3><p>Reproducing the analysis on synthetic data so the real, client confidential work never has to be shown.</p></div>
+      </div>
+      <div class="dl-row">
+        <a href="infrastructure_data/generate_data.py" target="_blank" rel="noopener">Data generator (.py) ↓</a>
+        <a href="infrastructure_data/generate_charts.py" target="_blank" rel="noopener">Chart script (.py) ↓</a>
+        <a href="infrastructure_data/README.md" target="_blank" rel="noopener">Data &amp; model README ↓</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="disclaim">This page reproduces, in Python on a synthetic dataset, an analysis originally built in Power BI on real, confidential client data during an infrastructure commercial role. No real, client, supplier, or identifiable data appears anywhere on this page or in the linked files.</p>
+    <a href="https://prachidabli-data.github.io/index.html">← Back to portfolio</a>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.pybi').forEach(function(box){
+      box.querySelectorAll('.pybi-tab').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          box.querySelectorAll('.pybi-tab').forEach(function(b){ b.classList.remove('active'); });
+          box.querySelectorAll('.pybi-panel').forEach(function(p){ p.classList.remove('active'); });
+          btn.classList.add('active');
+          box.querySelector('#' + btn.dataset.target).classList.add('active');
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>
