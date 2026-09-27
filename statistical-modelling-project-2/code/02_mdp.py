@@ -78,11 +78,17 @@ def _tutoring_knowledge_dist(f: int) -> list:
     return [(0, 1.0 - p1 - p2), (1, p1), (2, p2)]
 
 
-def transitions(state: tuple, action: str) -> list:
+def transitions(state: tuple, action: str, k_max: int = None) -> list:
     """
     All (next_state, probability) pairs for a state and action. next_state
     is (k, f, s); the caller advances t separately.
+
+    k_max overrides the knowledge cap (used only by Stage 3's scale-up
+    experiment, which solves a larger problem than Stage 2's; it defaults
+    to Stage 2's own K_MAX everywhere else).
     """
+    if k_max is None:
+        k_max = K_MAX
     k, f, s = state
     if action == "rest":
         f2 = max(f - 1, 0)
@@ -103,32 +109,43 @@ def transitions(state: tuple, action: str) -> list:
     fatigue_dist = _fatigue_dist(f)
     outcomes = {}
     for dk, p_k in knowledge_dist:
-        k2 = min(k + dk, K_MAX)
+        k2 = min(k + dk, k_max)
         for f2, p_f in fatigue_dist:
             key = (k2, f2, s2)
             outcomes[key] = outcomes.get(key, 0.0) + p_k * p_f
     return list(outcomes.items())
 
 
-def all_states():
-    for k in range(K_MAX + 1):
+def all_states(k_max: int = None):
+    if k_max is None:
+        k_max = K_MAX
+    for k in range(k_max + 1):
         for f in range(F_MAX + 1):
             for s in range(S_MAX + 1):
                 yield (k, f, s)
 
 
-def solve():
+def solve(t_max: int = None, k_max: int = None):
     """
     Backward induction. Returns (V, policy, solve_seconds), where V[t] and
     policy[t] are dicts keyed by (k, f, s).
-    """
-    start_time = time.perf_counter()
-    states = list(all_states())
 
-    V = {T_MAX: {state: common.terminal_expected_score(state[0]) for state in states}}
+    t_max and k_max override the term length and knowledge cap (used only
+    by Stage 3's scale-up experiment); both default to Stage 2's own
+    problem size everywhere else, so this is unchanged from Phase 3.
+    """
+    if t_max is None:
+        t_max = T_MAX
+    if k_max is None:
+        k_max = K_MAX
+
+    start_time = time.perf_counter()
+    states = list(all_states(k_max))
+
+    V = {t_max: {state: common.terminal_expected_score(state[0]) for state in states}}
     policy = {}
 
-    for t in range(T_MAX - 1, -1, -1):
+    for t in range(t_max - 1, -1, -1):
         V[t] = {}
         policy[t] = {}
         for state in states:
@@ -138,7 +155,10 @@ def solve():
             for action in ACTIONS_IN_TIE_BREAK_ORDER:
                 if action == "tutoring" and s == 0:
                     continue
-                value = sum(prob * V[t + 1][next_state] for next_state, prob in transitions((k, f, s), action))
+                value = sum(
+                    prob * V[t + 1][next_state]
+                    for next_state, prob in transitions((k, f, s), action, k_max)
+                )
                 if value > best_value:
                     best_value = value
                     best_action = action
