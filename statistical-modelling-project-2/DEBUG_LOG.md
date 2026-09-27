@@ -79,3 +79,19 @@ disagreements is small (mean 0.15 points, maximum 0.90), meaning MCTS's
 mistakes are typically near-ties rather than clearly wrong choices.
 Reported as found rather than treated as something to fix, since MCTS is
 expected to be approximate.
+
+## Phase 5
+
+No bugs found. The generalised `solve()` (already parameterised for
+Stage 3's scale-up test) accepted a custom terminal reward function with
+no further changes, and re-running Phase 3's own solve afterward gave an
+identical V*(start) (81.9763), confirming the new `terminal_fn` parameter
+did not disturb the default path.
+
+The threshold sweep and the two policies' simulated outcomes both
+produced sensible, checkable numbers on the first run: the target-grade
+policy trades a negligible amount of mean score (81.78 against 81.82)
+for a better 5th percentile score (63.72 against 63.10) and a better
+worst-decile mean (62.38 against 62.05), which is exactly the shape a
+risk-sensitive objective is supposed to produce, so no further
+adjustment was made.

@@ -125,7 +125,7 @@ def all_states(k_max: int = None):
                 yield (k, f, s)
 
 
-def solve(t_max: int = None, k_max: int = None):
+def solve(t_max: int = None, k_max: int = None, terminal_fn=None):
     """
     Backward induction. Returns (V, policy, solve_seconds), where V[t] and
     policy[t] are dicts keyed by (k, f, s).
@@ -133,16 +133,23 @@ def solve(t_max: int = None, k_max: int = None):
     t_max and k_max override the term length and knowledge cap (used only
     by Stage 3's scale-up experiment); both default to Stage 2's own
     problem size everywhere else, so this is unchanged from Phase 3.
+
+    terminal_fn(k) overrides the terminal reward (used only by Stage 4's
+    risk-sensitive extension, which maximises a probability rather than
+    an expected score); it defaults to common.terminal_expected_score,
+    so this is also unchanged from Phase 3.
     """
     if t_max is None:
         t_max = T_MAX
     if k_max is None:
         k_max = K_MAX
+    if terminal_fn is None:
+        terminal_fn = common.terminal_expected_score
 
     start_time = time.perf_counter()
     states = list(all_states(k_max))
 
-    V = {t_max: {state: common.terminal_expected_score(state[0]) for state in states}}
+    V = {t_max: {state: terminal_fn(state[0]) for state in states}}
     policy = {}
 
     for t in range(t_max - 1, -1, -1):
