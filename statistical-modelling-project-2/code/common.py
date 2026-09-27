@@ -18,6 +18,21 @@ import pandas as pd
 SEED = 42
 
 # ---------------------------------------------------------------------------
+# Chart palette, matching the rest of the portfolio (presentational only,
+# not part of the scenario itself)
+# ---------------------------------------------------------------------------
+PALETTE = {
+    "navy": "#16294A",
+    "navy_light": "#33547F",
+    "amber": "#E0A030",
+    "amber_dark": "#BD831C",
+    "muted": "#8A93A6",
+    "line": "#E7DFD0",
+    "good": "#3F7D5A",
+    "bad": "#B23A3A",
+}
+
+# ---------------------------------------------------------------------------
 # Data
 # ---------------------------------------------------------------------------
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
