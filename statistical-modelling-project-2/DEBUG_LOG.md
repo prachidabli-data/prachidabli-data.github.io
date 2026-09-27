@@ -95,3 +95,15 @@ for a better 5th percentile score (63.72 against 63.10) and a better
 worst-decile mean (62.38 against 62.05), which is exactly the shape a
 risk-sensitive objective is supposed to produce, so no further
 adjustment was made.
+
+## Phase 6
+
+No bugs. This phase only read values already computed and validated in
+Sections 2 to 5 (no new simulation or solving), so there was nothing new
+to break. The one thing worth checking was whether the mid-term example
+state (week 7, knowledge 3, fatigue exhausted, 1 tutoring session left)
+would show a materially different action from the general "recover
+first, cram at the end" pattern already seen in Section 3's heatmaps.
+It did not: the policy rests at every week from 0 to 10 for this exact
+state and only spends its last tutoring session at week 11, consistent
+with, not contradicting, what was already found.
