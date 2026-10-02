@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistical Modelling Project II | Prachi Dabli</title>
+<meta name="description" content="A decision-modelling case study extending a BSc Mathematics regression exercise into planning under uncertainty: linear programming, an exact Markov decision process, Monte Carlo tree search and a risk-sensitive extension, built and validated in Python and Jupyter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Hanken+Grotesk:ital,wght@0,300..800;1,400..600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+<style>
+  :root{
+    --navy-900:#0B1626; --navy-800:#0F1E33; --navy-700:#16294A; --navy-600:#23406B; --navy-500:#33547F;
+    --cream:#FAF6EE; --cream-2:#F2ECDE; --cream-3:#E8E0CC;
+    --amber:#E0A030; --amber-bright:#F4B63F; --amber-dark:#BD831C;
+    --ink:#15203A; --ink-soft:#43506B; --ink-mute:#717C95;
+    --line:rgba(21,32,58,.12);
+    --shadow:0 1px 2px rgba(11,22,38,.04),0 8px 30px rgba(11,22,38,.08);
+    --maxw:1080px; --r:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Hanken Grotesk',sans-serif;background:var(--cream);color:var(--ink);line-height:1.65;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;line-height:1.1;letter-spacing:-.02em}
+  ::selection{background:var(--amber);color:var(--navy-900)}
+  a{color:var(--navy-700);text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* Top bar */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(250,246,238,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .back{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;color:var(--ink-soft)}
+  .back:hover{color:var(--navy-700)}
+  .brand{font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;letter-spacing:-.02em}
+
+  /* Hero */
+  .hero{background:linear-gradient(135deg,var(--navy-800),var(--navy-700));color:var(--cream);padding:64px 0 56px}
+  .eyebrow{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-bright);margin-bottom:18px}
+  .hero h1{font-size:clamp(28px,4.6vw,42px);color:#fff;max-width:24ch}
+  .hero p.lede{margin-top:18px;font-size:18px;color:rgba(255,255,255,.82);max-width:66ch}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+  .chip{font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.18)}
+  .meta{margin-top:22px;font-size:14px;color:rgba(255,255,255,.6)}
+
+  /* Sections */
+  section{padding:54px 0}
+  .sec-label{font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--amber-dark);margin-bottom:12px}
+  h2{font-size:clamp(24px,3.4vw,32px);margin-bottom:8px}
+  h3{font-size:20px;margin:30px 0 8px;color:var(--navy-700)}
+  p{margin:14px 0;color:var(--ink-soft);font-size:16.5px}
+  p strong,li strong{color:var(--ink)}
+  ul{margin:14px 0 14px 2px;list-style:none}
+  ul li{position:relative;padding-left:24px;margin:9px 0;color:var(--ink-soft)}
+  ul li::before{content:"";position:absolute;left:2px;top:11px;width:7px;height:7px;border-radius:2px;background:var(--amber)}
+  ol.plain{list-style:decimal;margin:14px 0 14px 22px}
+  ol.plain li{padding-left:6px;color:var(--ink-soft);margin:9px 0}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:30px 32px}
+  .demo-note{font-size:13.5px;color:var(--ink-mute);font-style:italic;margin-top:6px}
+
+  /* Chart figures */
+  .fig-section{background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .fig{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin:18px 0}
+  .fig img{width:100%;display:block;border-radius:8px}
+  .fig-cap{font-size:14px;color:var(--ink-mute);padding:10px 6px 2px}
+  .fig-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0}
+  @media (max-width:760px){.fig-grid{grid-template-columns:1fr}}
+
+  .dash-actions{margin-top:20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:12px 22px;border-radius:999px;border:1px solid transparent;transition:.2s}
+  .btn-primary{background:var(--navy-700);color:var(--cream)}
+  .btn-primary:hover{background:var(--navy-900);transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--navy-700);border-color:var(--line)}
+  .btn-ghost:hover{background:#fff}
+  .btn-sm{font-size:13.5px;padding:9px 16px}
+
+  /* Data table */
+  table.data{width:100%;border-collapse:collapse;margin:18px 0;font-size:15px;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  table.data th,table.data td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--line)}
+  table.data th{background:var(--navy-700);color:var(--cream);font-weight:600;font-family:'Bricolage Grotesque'}
+  table.data tr:last-child td{border-bottom:none}
+  table.data td:last-child,table.data th:last-child{text-align:right}
+
+  /* Business question blocks */
+  .bq{border-left:3px solid var(--amber);padding:4px 0 4px 22px;margin:26px 0}
+  .bq h4{font-size:18px;color:var(--navy-700);margin-bottom:4px}
+
+  /* Code */
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:14px;background:var(--cream-3);padding:2px 7px;border-radius:6px;color:var(--navy-800)}
+  pre{background:var(--navy-900);color:#E8EEF7;padding:18px 20px;border-radius:10px;overflow-x:auto;margin:16px 0;font-size:13.5px}
+  pre code{background:none;color:inherit;padding:0}
+
+  /* Maths */
+  .eq{margin:18px 0;overflow-x:auto;font-size:16px}
+
+  /* Stat callouts */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:18px 0}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow)}
+  .stat .n{font-family:'Bricolage Grotesque';font-size:26px;font-weight:700;color:var(--navy-700)}
+  .stat .l{font-size:13px;color:var(--ink-mute);margin-top:2px}
+  .sig{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;margin-top:8px}
+  .sig-yes{background:rgba(224,160,48,.16);color:var(--amber-dark)}
+  .sig-no{background:rgba(67,80,107,.1);color:var(--ink-soft)}
+
+  /* Validation / problem-solving cards */
+  .vcard{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 28px;margin:20px 0}
+  .vcard .vtag{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--amber-dark);background:var(--cream-3);padding:4px 11px;border-radius:6px;margin-bottom:13px}
+  .vcard h4{margin:0 0 14px;color:var(--navy-700);font-size:19px}
+  .vstep{display:grid;grid-template-columns:108px 1fr;gap:14px;margin:11px 0;align-items:start}
+  .vstep .lbl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding-top:3px}
+  .vstep.problem .lbl{color:#B0463C}
+  .vstep.diag .lbl{color:var(--amber-dark)}
+  .vstep.fix .lbl{color:#3A7D4E}
+  .vstep p{margin:0;font-size:15.5px;color:var(--ink-soft)}
+  .vshows{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:14.5px;color:var(--ink-soft)}
+  .vshows strong{color:var(--navy-700)}
+  @media (max-width:600px){.vstep{grid-template-columns:1fr;gap:3px}.vstep .lbl{padding-top:0}}
+
+  /* Recommendation cards */
+  .reco-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:18px 0}
+  @media (max-width:760px){.reco-grid{grid-template-columns:1fr}}
+  .reco{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:24px 26px}
+  .reco h4{color:var(--navy-700);font-size:17px;margin-bottom:8px}
+
+  /* Competency grid */
+  .comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:18px}
+  .comp{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow)}
+  .comp h4{font-size:15.5px;color:var(--navy-700);margin-bottom:6px}
+  .comp p{font-size:14.5px;margin:0}
+
+  /* Footer */
+  footer{background:var(--navy-900);color:rgba(255,255,255,.7);padding:40px 0;text-align:center;font-size:14.5px}
+  footer a{color:var(--amber-bright);font-weight:600}
+
+  @media (max-width:640px){
+    .hero{padding:48px 0 40px}
+    section{padding:40px 0}
+    .card{padding:22px 20px}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a class="back" href="index.html">&larr; Back to portfolio</a>
+    <span class="brand">Prachi Dabli</span>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Extension of Project I &middot; Decision modelling</span>
+    <h1>Statistical Modelling Project II: Planning a Term Under Uncertainty</h1>
+    <p class="lede">Project I asked what drives exam scores. This project asks a different question given that model: how should a student spend a limited term to get the best result, once the world is uncertain and decisions unfold week by week rather than all at once?</p>
+    <div class="chips">
+      <span class="chip">Linear Programming</span>
+      <span class="chip">MDP / Dynamic Programming</span>
+      <span class="chip">Monte Carlo Tree Search</span>
+      <span class="chip">Python</span>
+      <span class="chip">Jupyter</span>
+    </div>
+    <p class="meta">12-week term &middot; exact MDP solved and validated three ways &middot; Monte Carlo tree search validated against the exact answer &middot; four stages of increasing realism</p>
+  </div>
+</header>
+
+<!-- REBUILD NOTE -->
+<section style="padding:26px 0 0">
+  <div class="wrap">
+    <div class="card" style="padding:22px 26px">
+      <p style="margin:0;font-size:15px">This project reuses Project I's fitted regression coefficients and its dataset of 320 synthetic students wherever it can, since those are the one part of this exercise that is genuinely known. Everything Project I never modelled (a term unfolding over time, uncertainty, fatigue, a limited number of tutoring sessions) has to be added as an explicit assumption. Every parameter used from here on is labelled, in the code and on this page, as either <strong>from Project I</strong> or an <strong>assumption for this project</strong>, so the two are never quietly blurred together.</p>
+    </div>
+  </div>
+</section>
+
+<!-- THE QUESTION -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Objective</div>
+    <h2>The question, and how it extends Project I</h2>
+    <p>Project I's signature move was checking whether standard regression could recover a set of relationships that were deliberately programmed into a synthetic dataset. This project applies the same discipline one level up: <strong>can an approximate planning method (Monte Carlo tree search) recover a known optimal decision, computed exactly by dynamic programming?</strong> Same validation-against-ground-truth logic, applied to a decision rather than a coefficient.</p>
+    <p>The scenario is a student with a fixed 12-week term and a choice, every week, between self-study, group study, tutoring (a limited resource, only 4 sessions exist all term) and rest. The same underlying scenario is modelled at four increasing levels of realism:</p>
+    <ul>
+      <li><strong>Stage 1, linear programming.</strong> The best plan if the world were deterministic and linear: no uncertainty, no fatigue, one decision for the whole term.</li>
+      <li><strong>Stage 2, exact MDP.</strong> The provably optimal policy once outcomes are uncertain and decisions are made sequentially, week by week.</li>
+      <li><strong>Stage 3, Monte Carlo tree search.</strong> An approximate method that only ever simulates the future, never reads the exact answer, checked against Stage 2's solution.</li>
+      <li><strong>Stage 4, risk-sensitive extension.</strong> The same exact method, but maximising the chance of reaching a target grade rather than the average score.</li>
+    </ul>
+    <p class="demo-note">Demonstrates: framing a planning problem so it can be checked against a known-correct answer, the same discipline Project I applied to a regression.</p>
+  </div>
+</section>
+
+<!-- MATHEMATICAL FOUNDATIONS -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">Mathematical Foundations</div>
+    <h2>States, actions, and the value of a decision</h2>
+    <p><strong>Plain language first:</strong> a Markov decision process just says that being in some situation (a state) and taking some action leads, with known probabilities, to a new situation and eventually to a final outcome. The value of a state is the best average outcome achievable from there, found by asking, for every possible action, what its own expected future value would be, and taking the best one. Solved backward from the last week to the first, that single idea (the Bellman equation) gives a provably optimal plan for every possible situation at once.</p>
+
+    <h3>The state and the Bellman equation</h3>
+    <p>State $(t, k, f, s)$: week $t \in \{0, \dots, 12\}$, knowledge $k \in \{0, \dots, 10\}$, fatigue $f \in \{0, 1, 2\}$ (fresh, tired, exhausted), tutoring sessions remaining $s \in \{0, \dots, 4\}$. Actions $a$: self-study, group study, rest, and tutoring only when $s > 0$.</p>
+    <div class="eq">
+      $$
+      V_t(k, f, s) = \max_{a} \; \mathbb{E}_{(k', f', s') \sim P(\cdot \mid k, f, s, a)} \big[ V_{t+1}(k', f', s') \big], \qquad t = 0, \dots, 11
+      $$
+      $$
+      V_{12}(k, f, s) = \text{clip}(45 + 5k,\ 0,\ 100) \quad \text{for all } f, s
+      $$
+    </div>
+    <p>The terminal reward (45 at zero knowledge, 95 at full knowledge) is calibrated to span roughly Project I's own observed exam score range. Working backward from week 12 to week 0, this equation is solved exactly at every one of 2,145 state-values, in about 0.02 seconds.</p>
+
+    <h3>UCB1: exploration versus exploitation</h3>
+    <div class="eq">
+      $$
+      \text{UCB1}(a) = \bar{Q}(a) + c \sqrt{\dfrac{\ln N}{N(a)}}
+      $$
+    </div>
+    <p>$\bar{Q}(a)$ is the average return seen so far from trying action $a$ (exploitation). The second term grows for actions tried relatively rarely, pulling search back toward them before the tree commits too early to an action that only looked good by chance (exploration). $c$ controls the balance. Classic UCB1 sets $c = \sqrt{2}$ for rewards scaled to $[0,1]$; this problem's terminal rewards span roughly 45 to 95, so a small empirical sweep against the known exact value (see Validation and Problem-Solving, below) was used instead, settling on $c = 5$.</p>
+    <p class="demo-note">Demonstrates: formalising a planning problem as an MDP, and the exploration/exploitation trade-off that governs simulation-based search.</p>
+  </div>
+</section>
+
+<!-- STAGE 1: LP -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Stage 1</div>
+    <h2>The linear programming baseline</h2>
+    <p><strong>Plain language first:</strong> if hours simply added up with no diminishing returns and no uncertainty, the best plan is not a balanced spread of hours. It is to max out every capped, high-value activity and pour every remaining hour into whichever single activity is best, hitting the weekly budget exactly. That corner solution, not a balanced timetable, is the signature of a linear model, and it is exactly why Stage 2 introduces uncertainty and uneven capacities.</p>
+    <p>Decision variables (hours per week): self-study $x_1$, group study $x_2$, tutoring $x_3$, lecture $x_4$, extracurricular $x_5$.</p>
+    <div class="eq">
+      $$
+      \begin{aligned}
+      \text{maximise} \quad & 1.13x_1 + 1.2837x_2 + 1.5969x_3 + 1.8667x_4 - 0.52x_5 \\
+      \text{subject to} \quad & x_1+x_2+x_3+x_4+x_5 \le 40, \quad x_3 \le 3, \quad x_2 \le 6, \quad x_4 \le 15, \quad x_5 \ge 2 \\
+      & x_1, x_2, x_3, x_4, x_5 \ge 0
+      \end{aligned}
+      $$
+    </div>
+    <p>The coefficients on $x_2$ and $x_3$ are Project I's Group study (+1.83 per week) and Tutoring (+5.56 per week) bonuses, converted from a fixed weekly premium into a per-hour one by dividing by the mean weekly study hours in Project I's dataset (11.91 hours, an assumption for this project). $x_4$'s coefficient rescales Project I's attendance coefficient (+0.28 per percentage point) into per-lecture-hour terms, given 15 scheduled hours a week.</p>
+    <p class="demo-note">Solved with scipy's HiGHS method.</p>
+  </div>
+</section>
+
+<section class="fig-section">
+  <div class="wrap">
+    <div class="fig-grid">
+      <div class="fig" style="margin:0">
+        <img src="statistical-modelling-project-2/images/01_lp_allocation.png" alt="Bar chart of the optimal LP allocation: 14 hours self-study, 6 group study, 3 tutoring, 15 lecture, 2 extracurricular">
+      </div>
+      <div class="fig" style="margin:0">
+        <img src="statistical-modelling-project-2/images/02_lp_sensitivity.png" alt="Line chart of optimal predicted score against weekly hours budget from 20 to 50">
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="n">66.23</div><div class="l">Predicted score at the optimum</div></div>
+      <div class="stat"><div class="n">+1.13</div><div class="l">Shadow price of the weekly budget (points per extra hour)</div></div>
+      <div class="stat"><div class="n">+1.65</div><div class="l">Shadow price of the extracurricular minimum (the most expensive constraint)</div></div>
+      <div class="stat"><div class="n">40 / 40</div><div class="l">Hours used exactly, every capped activity maxed</div></div>
+    </div>
+    <p class="fig-cap">Every capped activity (lecture, tutoring, group study) is maxed out, extracurricular sits at its forced minimum, and self-study absorbs the remaining 14 hours, a corner solution rather than a spread. Re-solving at 41 hours confirmed the shadow price exactly (score rose by exactly 1.13), and a coarse brute-force grid search over feasible allocations matched the LP's own score to floating-point precision (55.27 both ways, excluding the intercept).</p>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="card" style="background:var(--cream-2);border-color:var(--line)">
+      <h4 style="margin:0 0 10px;color:var(--navy-700);font-size:16px">Where Project I's missed sleep effect resurfaces</h4>
+      <p style="margin:0;font-size:14.5px">Project I's regression estimated a sleep coefficient of +0.40 (not significant, p = 0.295), missing the true, programmed penalty of &minus;1.80 points per hour of sleep below six. The LP here can only see what Project I's regression estimated, not the true generating model, so it cannot see a real sleep effect either. That is exactly why sleep sits outside the weekly hours budget entirely, as a fixed constraint rather than something the LP optimises: a model can only trade off what it can see, and this model cannot see sleep.</p>
+    </div>
+    <p class="demo-note">Demonstrates: linear programming formulation and duality (shadow prices), validating an optimiser two independent ways, and tracing a limitation in Project I's own regression through into this project's model.</p>
+  </div>
+</section>
+
+<!-- STAGE 2: MDP -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">Stage 2</div>
+    <h2>The exact Markov decision process</h2>
+    <p><strong>Plain language first:</strong> the optimal policy is not "study as much as possible." It is "study with the highest-success-rate action available, and rest first when there is enough term left to recover, since a fresh student learns far more per session than a tired one." A second, more surprising finding: self-study is never the optimal choice anywhere in the 2,145-state policy, because group study carries no weekly capacity limit at this stage (unlike Stage 1's 6-hour cap) and has a higher success probability, so it dominates self-study outright, a real property of this model, not an error.</p>
+    <div class="stat-grid">
+      <div class="stat"><div class="n">81.98</div><div class="l">V*(start), the exact optimal expected score</div></div>
+      <div class="stat"><div class="n">82.01</div><div class="l">Mean of 10,000 simulated terms under the optimal policy</div></div>
+      <div class="stat"><div class="n">2,145</div><div class="l">State-values solved exactly, in 0.02 seconds</div></div>
+      <div class="stat"><div class="n">0 / 2,145</div><div class="l">States where self-study is optimal</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="fig-section" style="padding-top:0">
+  <div class="wrap">
+    <div class="fig">
+      <img src="statistical-modelling-project-2/images/03_mdp_policy_fresh_full_sessions.png" alt="Policy heatmap by week and knowledge, fresh with 4 tutoring sessions left: group study then tutoring throughout">
+    </div>
+    <p class="fig-cap">Fresh, with tutoring sessions available, the policy studies from week one: group study while knowledge is still low, tutoring for almost the rest of the term. Rest never appears here, since there is no fatigue yet to recover from.</p>
+    <div class="fig-grid">
+      <div class="fig" style="margin:0">
+        <img src="statistical-modelling-project-2/images/04_mdp_policy_tired_some_sessions.png" alt="Policy heatmap, tired with 2 tutoring sessions left: rest for almost the entire term, then tutoring at the very end">
+      </div>
+      <div class="fig" style="margin:0">
+        <img src="statistical-modelling-project-2/images/06_mdp_policy_comparison.png" alt="Bar chart comparing the optimal policy against three fixed policies: optimal scores 82.0, versus 71.7, 75.1 and 70.1">
+      </div>
+    </div>
+    <p class="fig-cap">Starting tired with most of the term still ahead, the policy rests almost throughout, then studies intensively only in the final two or three weeks: a fresh student succeeds far more often per session (fatigue multiplies success probability by 0.75 when tired, 0.4 when exhausted), so recovering early and cramming at full effectiveness later beats studying continuously at reduced effectiveness. Against three simple fixed policies (always self-study, always tutoring, alternate study and rest), the optimal policy wins by a wide margin: 82.0 against 71.7, 75.1 and 70.1.</p>
+    <p class="demo-note">Demonstrates: dynamic programming, backward induction, and validating an exact solver against both a Monte Carlo simulation and simple baseline policies.</p>
+  </div>
+</section>
+
+<!-- STAGE 3: MCTS -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Stage 3</div>
+    <h2>Monte Carlo tree search, checked against the exact answer</h2>
+    <p><strong>Plain language first:</strong> Monte Carlo tree search, given only a simulator and never the exact answer, picks the same action as the exact optimal policy about three quarters of the time, and its mistakes are nearly free (a fraction of a point lost, on average) rather than costly. Its own estimate of how good a state is converges toward the true value as the search budget grows, but only slowly: a 12-week horizon with several stochastic outcomes per action is a large tree to explore, and 20,000 simulations still leave a real, measured gap.</p>
+    <div class="stat-grid">
+      <div class="stat"><div class="n">76.5%</div><div class="l">Agreement rate with the exact policy, across 200 sampled states</div></div>
+      <div class="stat"><div class="n">0.15</div><div class="l">Mean value lost on disagreement (points)</div></div>
+      <div class="stat"><div class="n">80.30</div><div class="l">Simulated score, replanning every week (budget 1,000)</div></div>
+      <div class="stat"><div class="n">82.80</div><div class="l">Exact optimal policy, same 100 simulated terms</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="fig-section" style="padding-top:0">
+  <div class="wrap">
+    <div class="fig">
+      <img src="statistical-modelling-project-2/images/07_mcts_convergence.png" alt="Line chart of MCTS root value estimate against simulation budget on a log scale, rising from 74.5 to 76.9 but not reaching the exact value of 82.0">
+    </div>
+    <p class="fig-cap">The root value estimate rises steadily with budget (74.5 at 100 simulations to 76.9 at 20,000), moving the right direction, but a real gap to the exact 81.98 remains even at the largest budget tested. With about four actions and several stochastic outcomes each, the tree's width grows faster than its depth: at 20,000 simulations, most trees only reach full depth by around week 6 to 8 of 12, leaving the rest of every simulated term to a fully random rollout, which drags the average down. That is also why even the very first decision disagrees between the two methods (MCTS recommends tutoring, the exact policy says group study), a near-tie rather than a clear mistake.</p>
+    <div class="fig">
+      <img src="statistical-modelling-project-2/images/08_mcts_scale_up.png" alt="Bar chart comparing exact DP and MCTS solve time at the original and a 5.4 times larger problem size, DP staying under 0.1 seconds both times">
+    </div>
+    <p class="fig-cap">Scaling the problem up 5.4 times (24 weeks, knowledge to 30, 11,625 state-values against the original 2,145) barely moves exact DP's solve time (0.02 to 0.10 seconds), while MCTS's own cost tracks its search budget, not the state-space size. Reported honestly: at the size actually modelled here, exact dynamic programming remains the right tool, and MCTS's real advantage would only show up once the transition model itself became too large to solve in closed form, not simply from a longer term or a finer knowledge scale.</p>
+    <p class="demo-note">Demonstrates: Monte Carlo tree search (UCT/UCB1), handling stochastic transitions without a separate chance-node type, and being explicit about when an approximate method is, and is not, the right tool.</p>
+  </div>
+</section>
+
+<!-- STAGE 4: RISK -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">Stage 4</div>
+    <h2>Risk-sensitive extension: clearing a grade, not just averaging one</h2>
+    <p><strong>Plain language first:</strong> aiming to clear a specific grade rather than maximise the average leads to a genuinely different policy, not just a relabelling of the same one. But the practical difference in outcomes is small and exactly where you would expect it: the risk-sensitive policy trades a sliver of average score for a noticeably better worst case.</p>
+    <div class="eq">
+      $$
+      P(\text{score} \ge 70 \mid k) = \Phi\!\left( \frac{45 + 5k - 70}{7.5} \right)
+      $$
+    </div>
+    <p>Re-solving the identical Bellman equation with this terminal reward, using Project I's true exam noise (SD = 7.5) and the standard normal CDF $\Phi$, gives the policy that maximises the probability of reaching the target grade, rather than the average grade itself.</p>
+    <table class="data">
+      <thead><tr><th>Policy</th><th>Mean score</th><th>P(score &ge; 70)</th><th>5th percentile</th><th>Worst-decile mean</th></tr></thead>
+      <tbody>
+        <tr><td>Expected-score (Stage 2)</td><td>81.82</td><td>85.3%</td><td>63.10</td><td>62.05</td></tr>
+        <tr><td>Target-grade (Stage 4)</td><td>81.78</td><td>85.5%</td><td>63.72</td><td>62.38</td></tr>
+      </tbody>
+    </table>
+    <p>116 of 1,980 decision states (5.9%) choose a different action at target 70, including the very first decision of the term (expected-score policy picks group study, target-grade policy picks tutoring). Sweeping targets from 50 to 90 found disagreement at every threshold tested, from about 100 to 190 states, generally growing at stricter targets.</p>
+  </div>
+</section>
+
+<section class="fig-section" style="padding-top:0">
+  <div class="wrap">
+    <div class="fig">
+      <img src="statistical-modelling-project-2/images/09_risk_score_distributions.png" alt="Overlaid histograms of simulated final exam scores under the expected-score and target-grade policies, closely overlapping">
+    </div>
+    <div class="fig-grid">
+      <div class="fig" style="margin:0">
+        <img src="statistical-modelling-project-2/images/10_risk_policy_diff_fresh_full_sessions.png" alt="Heatmap highlighting where the two policies disagree, fresh with 4 sessions left: only in the first two to three weeks">
+      </div>
+      <div class="fig" style="margin:0">
+        <img src="statistical-modelling-project-2/images/11_risk_policy_diff_tired_some_sessions.png" alt="Heatmap highlighting where the two policies disagree, tired with 2 sessions left: only a single state late in the term">
+      </div>
+    </div>
+    <p class="fig-cap">Fresh at the start of term, the two policies disagree only in the first two or three weeks, always agreeing from week 3 onward at this fatigue and session count. Starting tired with sessions already partly used, they disagree at only a single state in the whole term. The risk-sensitive objective mostly changes opening moves, not the whole-term strategy, and how much it changes depends heavily on where a student already stands.</p>
+    <p style="font-size:14.5px">This is one simple form of risk-sensitive decision-making: maximising the probability of clearing a fixed threshold. More general approaches, such as optimising a risk measure like CVaR (the expected shortfall in the worst outcomes, rather than just their probability), are a natural next step beyond what is modelled here.</p>
+    <p class="demo-note">Demonstrates: reformulating an MDP's objective without changing its structure, and quantifying a risk/return trade-off with real simulated outcomes rather than asserting one exists.</p>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Results</div>
+    <h2>Four methods, four different questions</h2>
+    <p><strong>Plain language first:</strong> these methods are not really competing to give the best answer, they answer different questions under different assumptions. Comparing their scores directly would be comparing answers to different questions, so the table is only honest read alongside what each method actually assumes.</p>
+    <table class="data">
+      <thead><tr><th>Method</th><th>Assumes</th><th>Output</th><th>Score</th></tr></thead>
+      <tbody>
+        <tr><td>LP (Stage 1)</td><td>Deterministic, linear, no uncertainty</td><td>One fixed weekly hour allocation</td><td>66.23 predicted</td></tr>
+        <tr><td>MDP, exact (Stage 2)</td><td>Known transition probabilities; state space small enough for exact DP</td><td>Full policy, every state</td><td>81.98 exact, 82.01 simulated</td></tr>
+        <tr><td>MCTS (Stage 3)</td><td>Only a simulator needed; approximate</td><td>One action, must be rerun for every decision</td><td>80.30 simulated, replanning weekly</td></tr>
+        <tr><td>Target-grade, exact (Stage 4)</td><td>Same as the exact MDP, different goal (P(score &ge; 70), not the average)</td><td>Full policy, every state</td><td>81.78 mean, 85.5% P(&ge;70)</td></tr>
+      </tbody>
+    </table>
+    <p>Compute cost is not a fair ranking across this table either: the exact MDP and the target-grade policy are each solved once (0.02 seconds) and cover every possible state, while MCTS costs about 1.4 seconds per single decision at a budget of 5,000, and that cost must be paid again for every new decision. The exact MDP's own solve time stays close to instant even at 5.4 times this problem's state-space size, which is precisely why it, not MCTS, is the method actually used for the recommendations below.</p>
+  </div>
+</section>
+
+<!-- VALIDATION AND PROBLEM-SOLVING -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">Validation and Problem-Solving</div>
+    <h2>What actually went wrong, and how it was caught</h2>
+    <p>Every entry below is a genuine finding from the build log, not a tidied-up narrative written afterward. Two are real bugs, caught and fixed; the others are honest, checked findings the model produced that could easily have been mistaken for bugs, but were not.</p>
+
+    <div class="vcard">
+      <span class="vtag">Monte Carlo tree search &middot; backpropagation</span>
+      <h4>A root value of exactly zero</h4>
+      <div class="vstep problem"><span class="lbl">Problem</span><p>The very first MCTS run printed a root value estimate of 0.0000, while the four action Q-values it was built from all looked sensible (73 to 76 points).</p></div>
+      <div class="vstep diag"><span class="lbl">Diagnosis</span><p>The backpropagation loop updated the visit count and per-action totals for every node on the simulated path, but never that node's own accumulated return, so every node's value stayed at zero except the one newly expanded leaf at the very end of the path, updated separately one line below the loop.</p></div>
+      <div class="vstep fix"><span class="lbl">Fix</span><p>Added the missing accumulator update inside the same loop.</p></div>
+      <pre><code>for n, a in path:
+    n.N += 1
+    n.W += return_value   <span style="color:#9FB0C7"># the line that was missing</span>
+    n.action_N[a] = n.action_N.get(a, 0) + 1
+    n.action_W[a] = n.action_W.get(a, 0.0) + return_value</code></pre>
+      <p class="vshows"><strong>What it shows:</strong> comparing a headline number against the components it was built from, rather than trusting either one in isolation.</p>
+    </div>
+
+    <div class="vcard">
+      <span class="vtag">Scale-up experiment &middot; state counting</span>
+      <h4>A state count that quietly disagreed with an earlier section</h4>
+      <div class="vstep problem"><span class="lbl">Problem</span><p>The scale-up experiment's reported state-space size for the original problem was 1,980, not the 2,145 already reported in Stage 2.</p></div>
+      <div class="vstep diag"><span class="lbl">Diagnosis</span><p>The count multiplied states-per-week by the number of weeks before the term ends, missing the terminal week itself.</p></div>
+      <div class="vstep fix"><span class="lbl">Fix</span><p>Added the missing week; the scaled problem's own count was already correct.</p></div>
+      <p class="vshows"><strong>What it shows:</strong> cross-checking a number against the same number reported earlier, rather than assuming two independently written pieces of code would already agree.</p>
+    </div>
+
+    <div class="vcard">
+      <span class="vtag">UCB1 &middot; tuning, not a bug</span>
+      <h4>Choosing the exploration constant</h4>
+      <p style="margin:0 0 10px;font-size:15px">Classic UCB1 sets $c = \sqrt{2}$, derived for rewards scaled to $[0,1]$. This problem's terminal rewards span roughly 45 to 95, so that value explores far too little in practice; a linear rescaling by the reward's range suggested something closer to $c = 70$, but tested directly this over-explored badly, giving a worse root-value estimate at the largest budget tested than smaller values of $c$. A sweep over $c \in \{1, 2, 5, 10, 20\}$ at budget 20,000 found $c = 5$ gave the highest root value, so that is what the rest of Stage 3 uses.</p>
+      <p class="vshows" style="margin-top:0;border-top:none;padding-top:0"><strong>What it shows:</strong> a parameter derived from theory does not transfer automatically to a different reward scale, and the fix is to test candidates against a known answer rather than rescale by intuition alone.</p>
+    </div>
+
+    <div class="vcard">
+      <span class="vtag">Stage 2 policy &middot; genuine finding, not a bug</span>
+      <h4>Self-study never appears in the optimal policy</h4>
+      <p style="margin:0;font-size:15px">Across all 2,145 states, the exact policy never once chooses self-study. This is a real consequence of how the scenario is built: Stage 1's linear programme capped group study at 6 hours a week, but Stage 2's weekly action choice carries no such capacity limit, so group study's higher success probability (0.57 against self-study's 0.50) dominates self-study outright with no offsetting cost. Left as found and reported honestly (see Stage 2, above), rather than adding a capacity constraint after the fact to make self-study reappear, which would have been tuning the model to look more expected rather than reporting what it actually does.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RECOMMENDATIONS -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Recommendations</div>
+    <h2>What the exact policy actually advises</h2>
+    <p><strong>Plain language first:</strong> the exact policy's advice is not generic ("study more"), it is conditional on exactly where a student stands, and the two examples below show genuinely different advice for genuinely different situations, both read directly off the solved policy rather than argued in the abstract.</p>
+    <div class="reco-grid">
+      <div class="reco">
+        <h4>At the start of term</h4>
+        <p style="margin:0">The exact policy's first move is group study, not tutoring and not self-study. Self-study never appears anywhere in this policy, and tutoring is deliberately held back early, since only 4 sessions exist for the whole term and group study is nearly as effective while knowledge is still low. Expect the policy to shift into tutoring within the first couple of weeks as knowledge builds.</p>
+      </div>
+      <div class="reco">
+        <h4>Right now, from a realistic mid-term state</h4>
+        <p style="margin:0">Take a student in week 7, knowledge 3, fatigue exhausted, with 1 tutoring session left. The exact policy says rest, and keeps saying rest for every remaining week except the very last, where it finally spends the last session. A fresh student succeeds far more per session than an exhausted one, so recovering now and spending the one resource left at full effectiveness in the final week outperforms grinding through in between.</p>
+      </div>
+    </div>
+    <p class="demo-note">Both recommendations are read directly from <code>policy[t][(k, f, s)]</code> in the solved MDP, not argued from intuition.</p>
+  </div>
+</section>
+
+<!-- LIMITATIONS -->
+<section style="background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-label">Limitations and Next Steps</div>
+    <h2>What this project does not show</h2>
+    <ul>
+      <li>Every number in this project comes from a <strong>synthetic, reconstructed dataset</strong> (Project I's 320 students) or from assumptions made to turn that dataset into a planning scenario; none of it describes a real student.</li>
+      <li>The per-hour premiums for group study and tutoring, and every transition probability in the MDP, are <strong>assumptions</strong> calibrated to be broadly consistent with Project I's fitted coefficients, not values Project I itself estimated.</li>
+      <li>Project I's own regression <strong>missed the true sleep effect</strong> entirely (a real penalty its estimate, at p = 0.295, could not distinguish from noise). That miss is inherited here: sleep sits outside every model in this project rather than being actively planned around.</li>
+      <li>Every stage except Stage 4 optimises the <strong>average outcome</strong>. A student who cares about consistency, or about avoiding a bad outcome more than chasing a good one, should look to the risk-sensitive policy in Stage 4, not the plain exact policy in Stage 2.</li>
+    </ul>
+    <p>Natural next steps: giving group study its own capacity limit in the MDP (closing the gap flagged in Validation and Problem-Solving), a heuristic rollout policy for MCTS instead of a uniformly random one, and a more general risk measure such as CVaR instead of a single fixed target grade.</p>
+  </div>
+</section>
+
+<!-- COMPETENCY -->
+<section>
+  <div class="wrap">
+    <div class="sec-label">Competency Shown</div>
+    <h2>Skills demonstrated</h2>
+    <div class="comp-grid">
+      <div class="comp"><h4>Linear programming and duality</h4><p>Formulating and solving a constrained optimisation, reading and validating shadow prices two independent ways.</p></div>
+      <div class="comp"><h4>MDPs and dynamic programming</h4><p>Formalising a sequential decision problem and solving it exactly by backward induction, at a state space where exact solving is genuinely feasible.</p></div>
+      <div class="comp"><h4>Monte Carlo tree search</h4><p>Implementing UCT/UCB1 from a simulator only, handling stochastic transitions without a separate chance-node type.</p></div>
+      <div class="comp"><h4>Simulation and validation</h4><p>Checking every stage against an independent method: shadow prices against a re-solve and a grid search, the exact policy against simulation and fixed baselines, MCTS against the exact answer.</p></div>
+      <div class="comp"><h4>Risk-sensitive decision-making</h4><p>Reformulating an MDP's objective to maximise a probability rather than an average, and quantifying the resulting trade-off honestly.</p></div>
+      <div class="comp"><h4>Python and Jupyter</h4><p>NumPy, pandas, SciPy (linprog), Matplotlib, and a notebook that imports from shared modules and runs cleanly end to end.</p></div>
+      <div class="comp"><h4>Communication</h4><p>Leading every section with the plain-language finding before the technical detail, and reporting genuine bugs and honest limitations rather than smoothing them away.</p></div>
+    </div>
+
+    <div class="dash-actions">
+      <a class="btn btn-primary" href="statistical-modelling-project-2/notebook/decision_modelling.ipynb" download>Notebook (.ipynb) &darr;</a>
+      <a class="btn btn-ghost" href="statistical-modelling-project-2/code/common.py" download>common.py &darr;</a>
+      <a class="btn btn-ghost" href="statistical-modelling-project-2/code/01_lp.py" download>01_lp.py &darr;</a>
+      <a class="btn btn-ghost" href="statistical-modelling-project-2/code/02_mdp.py" download>02_mdp.py &darr;</a>
+      <a class="btn btn-ghost" href="statistical-modelling-project-2/code/03_mcts.py" download>03_mcts.py &darr;</a>
+      <a class="btn btn-ghost" href="statistical-modelling-project-2/code/04_risk_extension.py" download>04_risk_extension.py &darr;</a>
+    </div>
+    <div class="dash-actions">
+      <a class="btn btn-ghost btn-sm" href="statistical-modelling-project-2/data/lp_allocation.csv" download>lp_allocation.csv &darr;</a>
+      <a class="btn btn-ghost btn-sm" href="statistical-modelling-project-2/data/lp_shadow_prices.csv" download>lp_shadow_prices.csv &darr;</a>
+      <a class="btn btn-ghost btn-sm" href="statistical-modelling-project-2/data/lp_sensitivity.csv" download>lp_sensitivity.csv &darr;</a>
+      <a class="btn btn-ghost btn-sm" href="statistical-modelling-project-2/data/mdp_policy.csv" download>mdp_policy.csv &darr;</a>
+      <a class="btn btn-ghost btn-sm" href="statistical-modelling-project-2/data/mcts_convergence.csv" download>mcts_convergence.csv &darr;</a>
+      <a class="btn btn-ghost btn-sm" href="statistical-modelling-project-2/data/mcts_policy_agreement.csv" download>mcts_policy_agreement.csv &darr;</a>
+      <a class="btn btn-ghost btn-sm" href="statistical-modelling-project-2/data/risk_comparison.csv" download>risk_comparison.csv &darr;</a>
+      <a class="btn btn-ghost btn-sm" href="statistical-modelling-project-2/data/risk_threshold_sweep.csv" download>risk_threshold_sweep.csv &darr;</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Built entirely on Project I's synthetic dataset and fitted coefficients, plus documented assumptions needed to turn that regression into a planning scenario. No real student data is used anywhere in this project.</p>
+    <p style="margin-top:10px"><a href="index.html">&larr; Back to portfolio</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
